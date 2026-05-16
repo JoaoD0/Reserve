@@ -2,7 +2,6 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Settings,
   Bell,
   HelpCircle,
   Award,
@@ -49,6 +48,20 @@ function Perfil() {
     enabled: !!user && !!supabase,
   });
 
+  const { data: points } = useQuery<number>({
+    queryKey: ["points", user?.id],
+    queryFn: async () => {
+      if (!supabase || !user) return 0;
+      const { data } = await supabase
+        .from("profiles")
+        .select("points")
+        .eq("id", user.id)
+        .single();
+      return data?.points ?? 0;
+    },
+    enabled: !!user && !!supabase,
+  });
+
   if (location.pathname !== "/perfil") return <Outlet />;
   if (loading) return null;
 
@@ -78,7 +91,7 @@ function Perfil() {
   const stats = [
     { label: "Reservas", value: reservationCount ?? "—" },
     { label: "Favoritos", value: favorites.length > 0 ? favorites.length : "—" },
-    { label: "Pontos", value: "—" },
+    { label: "Pontos", value: points ?? "—" },
   ];
 
   const menuItems = [
@@ -90,9 +103,8 @@ function Perfil() {
 
   return (
     <MobileShell>
-      <header className="flex items-center justify-between px-5 pt-6">
+      <header className="flex items-center px-5 pt-6">
         <div className="flex items-center gap-2.5">
-          {/* small R wordmark */}
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
             <span className="font-display text-sm font-bold text-primary-foreground">R</span>
           </div>
@@ -100,9 +112,6 @@ function Perfil() {
             Reservê
           </span>
         </div>
-        <button className="flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-surface/60">
-          <Settings size={15} className="text-muted-foreground" />
-        </button>
       </header>
 
       {/* Profile header */}
@@ -121,8 +130,8 @@ function Perfil() {
           </div>
           <h1 className="font-display mt-4 text-2xl">{fullName}</h1>
           <p className="text-xs text-muted-foreground">{user?.email ?? ""}</p>
-          <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-gold">
-            <Award size={11} /> Membro Gold
+          <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-orange-700/40 bg-orange-900/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-orange-400">
+            <Award size={11} /> Membro Bronze
           </span>
         </motion.div>
 

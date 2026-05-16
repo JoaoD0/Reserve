@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReservasRouteImport } from './routes/reservas'
+import { Route as RecompensasRouteImport } from './routes/recompensas'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
@@ -37,6 +38,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const ReservasRoute = ReservasRouteImport.update({
   id: '/reservas',
   path: '/reservas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecompensasRoute = RecompensasRouteImport.update({
+  id: '/recompensas',
+  path: '/recompensas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PerfilRoute = PerfilRouteImport.update({
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRouteWithChildren
+  '/recompensas': typeof RecompensasRoute
   '/reservas': typeof ReservasRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRouteWithChildren
+  '/recompensas': typeof RecompensasRoute
   '/reservas': typeof ReservasRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRouteWithChildren
+  '/recompensas': typeof RecompensasRoute
   '/reservas': typeof ReservasRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
@@ -152,6 +161,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/perfil'
+    | '/recompensas'
     | '/reservas'
     | '/reset-password'
     | '/signup'
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/perfil'
+    | '/recompensas'
     | '/reservas'
     | '/reset-password'
     | '/signup'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/perfil'
+    | '/recompensas'
     | '/reservas'
     | '/reset-password'
     | '/signup'
@@ -201,6 +213,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   PerfilRoute: typeof PerfilRouteWithChildren
+  RecompensasRoute: typeof RecompensasRoute
   ReservasRoute: typeof ReservasRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
@@ -229,6 +242,13 @@ declare module '@tanstack/react-router' {
       path: '/reservas'
       fullPath: '/reservas'
       preLoaderRoute: typeof ReservasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recompensas': {
+      id: '/recompensas'
+      path: '/recompensas'
+      fullPath: '/recompensas'
+      preLoaderRoute: typeof RecompensasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/perfil': {
@@ -334,6 +354,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   PerfilRoute: PerfilRouteWithChildren,
+  RecompensasRoute: RecompensasRoute,
   ReservasRoute: ReservasRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,

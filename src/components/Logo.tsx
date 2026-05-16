@@ -27,14 +27,9 @@ export function Logo({ size = 32 }: { size?: number }) {
           />
         </svg>
       </motion.div>
-      <div className="flex flex-col leading-none">
-        <span className="font-display text-[18px] font-semibold tracking-tight text-foreground">
-          Reservê
-        </span>
-        <span className="text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
-          dining club
-        </span>
-      </div>
+      <span className="font-display text-[18px] font-semibold tracking-tight text-foreground">
+        Reservê
+      </span>
     </div>
   );
 }

@@ -1,10 +1,11 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Home, CalendarCheck, User } from "lucide-react";
+import { Home, CalendarCheck, Trophy, User } from "lucide-react";
 
 const items = [
   { to: "/", label: "Início", icon: Home },
   { to: "/reservas", label: "Reservas", icon: CalendarCheck },
+  { to: "/recompensas", label: "Recompensas", icon: Trophy },
   { to: "/perfil", label: "Perfil", icon: User },
 ] as const;
 
@@ -14,7 +15,7 @@ export function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 px-4 pb-4">
       <div className="relative rounded-[28px] border border-border/60 bg-surface-elevated/80 px-2 py-2 backdrop-blur-xl glow-soft">
-        <ul className="relative grid grid-cols-3">
+        <ul className="relative grid grid-cols-4">
           {items.map((item) => {
             const active = pathname === item.to;
             const Icon = item.icon;

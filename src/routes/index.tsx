@@ -109,21 +109,8 @@ function Home() {
   const now = new Date();
   const hour = now.getHours();
   const min = now.getMinutes();
-  const isMorning = hour > 5 || (hour === 5 && min >= 30);
-  const isAfternoon = hour >= 12;
-  const isEvening = hour >= 18;
-
-  const greeting = isEvening ? "Boa noite" : isAfternoon ? "Boa tarde" : isMorning ? "Bom dia" : "Boa noite";
-  const headingPrefix = isEvening || !isMorning
-    ? "Onde vamos jantar"
-    : isAfternoon
-    ? "Onde iremos lanchar"
-    : "Onde iremos tomar café";
-  const headingSuffix = isEvening || !isMorning
-    ? "esta noite?"
-    : isAfternoon
-    ? "nessa tarde?"
-    : "essa manhã?";
+  const isDay = hour > 5 || (hour === 5 && min >= 30);
+  const greeting = hour >= 18 ? "Boa noite" : !isDay ? "Boa noite" : hour >= 12 ? "Boa tarde" : "Bom dia";
 
   // Restore location from localStorage on mount
   useEffect(() => {
@@ -188,8 +175,8 @@ function Home() {
         <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
           {greeting}, {firstName}
         </p>
-        <h1 className="font-display mt-2 text-[34px] font-light leading-[1.05] text-foreground overflow-visible">
-          {headingPrefix} <span className="text-gradient-gold italic">{headingSuffix}</span>
+        <h1 className="font-display mt-2 text-[28px] font-light leading-[1.15] text-foreground overflow-visible">
+          Onde você quer <span className="text-gradient-gold italic inline-block pr-2">reservar?</span>
         </h1>
 
         <div className="mt-5 flex items-center gap-2 rounded-2xl border border-border/60 bg-surface/70 px-4 py-3.5 backdrop-blur">
