@@ -1,0 +1,857 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Calendar,
+  Clock,
+  Users,
+  MoreHorizontal,
+  ChevronDown,
+  Hourglass,
+  Heart,
+  X,
+  MapPin,
+  Phone,
+  Star,
+  Share2,
+  Bell,
+  XCircle,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { MobileShell } from "@/components/MobileShell";
+import { Logo } from "@/components/Logo";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
+import sushiImg from "@/assets/sushi.jpg";
+import pastaImg from "@/assets/pasta.jpg";
+import burgerImg from "@/assets/burger.jpg";
+
+export const Route = createFileRoute("/reservas")({
+  component: Reservas,
+  head: () => ({ meta: [{ title: "Reservas — Reservê" }] }),
+});
+
+type Dish = { name: string; price: string; description?: string };
+
+type Reservation = {
+  name: string;
+  img: string;
+  date: string;
+  time: string;
+  people: number;
+  address: string;
+  phone: string;
+  rating: number;
+  cuisine: string;
+  description: string;
+  status: "Confirmada" | "Aguardando";
+  dishes: Dish[];
+};
+
+const upcomingSeed: Reservation[] = [
+  {
+    name: "Sakura Omakase",
+    img: sushiImg,
+    date: "Sex, 16 Mai",
+    time: "20:30",
+    people: 2,
+    address: "Rua dos Pinheiros 1280, Jardins",
+    phone: "+55 11 4002-8922",
+    rating: 4.9,
+    cuisine: "Japonês contemporâneo",
+    description:
+      "Balcão íntimo de 10 lugares. Omakase autoral do chef Kenzo Arata, com peixes selecionados diariamente do Tsukiji.",
+    status: "Confirmada",
+    dishes: [
+      { name: "Omakase 12 cortes", price: "R$ 320", description: "Seleção do chef, 12 etapas" },
+      { name: "Sashimi de toro", price: "R$ 145", description: "Barriga de atum gordo" },
+      { name: "Tempura de camarão", price: "R$ 78", description: "Camarão rosa empanado" },
+      { name: "Sake pairing", price: "R$ 220", description: "Harmonização 5 doses" },
+    ],
+  },
+  {
+    name: "Atelier Trufa",
+    img: pastaImg,
+    date: "Sáb, 24 Mai",
+    time: "21:00",
+    people: 4,
+    address: "Rua Aspicuelta 410, Vila Madalena",
+    phone: "+55 11 3815-7733",
+    rating: 4.8,
+    cuisine: "Italiano · Autoral",
+    description:
+      "Cozinha italiana contemporânea com massas frescas feitas na hora e foco em trufas brancas e negras.",
+    status: "Aguardando",
+    dishes: [
+      { name: "Tagliolini ao tartufo", price: "R$ 189", description: "Massa fresca, lascas de trufa" },
+      { name: "Risoto de funghi porcini", price: "R$ 162" },
+      { name: "Burrata com trufa negra", price: "R$ 98" },
+      { name: "Tiramisù da casa", price: "R$ 54" },
+    ],
+  },
+];
+
+const past = [
+  {
+    name: "Brasa & Cobre",
+    img: burgerImg,
+    date: "02 Mai",
+    people: 3,
+    total: "R$ 412",
+    dishes: [
+      { name: "Tomahawk dry-aged", price: "R$ 248" },
+      { name: "Batata rústica defumada", price: "R$ 42" },
+    ],
+  },
+];
+
+const waitlist = [
+  {
+    name: "Casa Tucupi",
+    img: pastaImg,
+    date: "Qui, 22 Mai",
+    time: "20:00",
+    people: 2,
+    position: 3,
+  },
+];
+
+const tabs = ["Próximas", "Histórico", "Lista de espera"] as const;
+type Tab = (typeof tabs)[number];
+
+const itemAnim = {
+  hidden: { opacity: 0, y: 16 },
+  show: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
+  }),
+};
+
+type Modal =
+  | { kind: "details"; r: Reservation }
+  | { kind: "reschedule"; r: Reservation }
+  | null;
+
+function Reservas() {
+  const { user, loading: authLoading, isConfigured } = useAuth();
+  const [tab, setTab] = useState<Tab>("Próximas");
+  const [modal, setModal] = useState<Modal>(null);
+  const [favorites, setFavorites] = useState<Record<string, boolean>>({
+    "Sakura Omakase": true,
+  });
+
+  /* ── Real reservations from Supabase ── */
+  const { data: realUpcoming = [] } = useQuery({
+    queryKey: ["userReservations", user?.id],
+    queryFn: async () => {
+      if (!supabase || !user) return [];
+      const { data, error } = await supabase
+        .from("reservations")
+        .select(`*, restaurants(name, image_url, address, cuisine, rating, phone)`)
+        .in("status", ["confirmed", "pending"])
+        .order("reservation_date", { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map((r: any): Reservation => ({
+        name: r.restaurants?.name ?? "Restaurante",
+        img: r.restaurants?.image_url ?? sushiImg,
+        date: new Date(r.reservation_date + "T12:00:00").toLocaleDateString("pt-BR", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+        }),
+        time: r.time_slot,
+        people: r.party_size,
+        address: r.restaurants?.address ?? "",
+        phone: r.restaurants?.phone ?? r.contact_phone ?? "",
+        rating: r.restaurants?.rating ?? 0,
+        cuisine: r.restaurants?.cuisine ?? "",
+        description: "",
+        status: r.status === "confirmed" ? "Confirmada" : "Aguardando",
+        dishes: [],
+      }));
+    },
+    enabled: isConfigured && !!user,
+  });
+
+  const upcomingList: Reservation[] = isConfigured && user ? realUpcoming : upcomingSeed;
+  const [reservations, setReservations] = useState<Reservation[]>(upcomingSeed);
+  const displayReservations = isConfigured && user ? upcomingList : reservations;
+
+  const toggleFav = (name: string) =>
+    setFavorites((f) => ({ ...f, [name]: !f[name] }));
+
+  const reschedule = (name: string, date: string, time: string) => {
+    setReservations((rs) =>
+      rs.map((r) => (r.name === name ? { ...r, date, time } : r))
+    );
+    setModal(null);
+  };
+
+  /* ── Auth gate ── */
+  if (isConfigured && !authLoading && !user) {
+    return (
+      <MobileShell>
+        <header className="flex items-center px-5 pt-6">
+          <Logo />
+        </header>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          className="flex flex-col items-center justify-center px-5 py-20 text-center"
+        >
+          <div className="flex h-20 w-20 items-center justify-center rounded-3xl border border-border/60 bg-surface text-4xl">
+            🍽️
+          </div>
+          <h1 className="font-display mt-6 text-2xl text-foreground">
+            Faça login para ver suas reservas
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Entre na sua conta para acompanhar todas as suas reservas.
+          </p>
+          <div className="mt-8 flex w-full flex-col gap-3">
+            <Link
+              to="/login"
+              className="flex w-full items-center justify-center rounded-full bg-accent py-3.5 text-sm font-semibold text-accent-foreground"
+            >
+              Entrar
+            </Link>
+            <Link
+              to="/signup"
+              className="flex w-full items-center justify-center rounded-full border border-border/60 py-3.5 text-sm font-medium text-foreground transition-colors hover:bg-surface"
+            >
+              Criar conta
+            </Link>
+          </div>
+        </motion.div>
+      </MobileShell>
+    );
+  }
+
+  return (
+    <MobileShell>
+      <header className="flex items-center justify-between px-5 pt-6">
+        <Logo />
+      </header>
+
+      <section className="px-5 pt-7">
+        <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Suas mesas</p>
+        <h1 className="font-display mt-2 text-[34px] font-light leading-[1.05]">
+          Reservas <span className="text-gradient-gold italic">{tab.toLowerCase()}</span>
+        </h1>
+      </section>
+
+      {/* Tabs */}
+      <div className="mt-5 px-5">
+        <div className="relative flex gap-1 rounded-full border border-border/60 bg-surface/60 p-1 backdrop-blur">
+          {tabs.map((t) => {
+            const active = tab === t;
+            return (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`relative flex-1 rounded-full py-2 text-[11px] font-medium transition-colors ${
+                  active ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                {active && (
+                  <motion.span
+                    layoutId="reservas-tab-pill"
+                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                    className="absolute inset-0 rounded-full bg-primary/15"
+                  />
+                )}
+                <span className="relative">{t}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {tab === "Próximas" && (
+          <motion.section
+            key="upcoming"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25 }}
+            className="mt-6 flex flex-col gap-4 px-5"
+          >
+            {displayReservations.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center gap-3 py-16 text-center"
+              >
+                <p className="text-4xl">🍽️</p>
+                <p className="font-display text-lg text-foreground">Sem reservas próximas</p>
+                <p className="text-sm text-muted-foreground">
+                  Você ainda não tem nenhuma reserva agendada.
+                </p>
+                <Link
+                  to="/"
+                  className="mt-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+                >
+                  Explorar restaurantes
+                </Link>
+              </motion.div>
+            ) : (
+              displayReservations.map((r, i) => (
+                <ReservationCard
+                  key={r.name + i}
+                  r={r}
+                  i={i}
+                  isFav={!!favorites[r.name]}
+                  onToggleFav={() => toggleFav(r.name)}
+                  onDetails={() => setModal({ kind: "details", r })}
+                  onReschedule={() => setModal({ kind: "reschedule", r })}
+                />
+              ))
+            )}
+          </motion.section>
+        )}
+
+        {tab === "Histórico" && (
+          <motion.section
+            key="past"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25 }}
+            className="mt-6 flex flex-col gap-3 px-5"
+          >
+            {past.map((r, i) => (
+              <motion.article
+                key={r.name}
+                custom={i}
+                variants={itemAnim}
+                initial="hidden"
+                animate="show"
+                className="overflow-hidden rounded-2xl border border-border/60 bg-card"
+              >
+                <div className="flex items-center gap-3 p-3">
+                  <img src={r.img} alt={r.name} className="h-14 w-14 rounded-xl object-cover" loading="lazy" />
+                  <div className="flex-1">
+                    <p className="font-display text-base">{r.name}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Visita em {r.date} · {r.people} pessoas
+                    </p>
+                  </div>
+                  <span className="font-display text-sm text-gold">{r.total}</span>
+                </div>
+                <div className="border-t border-border/60 px-4 py-3">
+                  <p className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Pedido
+                  </p>
+                  <ul className="flex flex-col gap-1.5">
+                    {r.dishes.map((d) => (
+                      <li key={d.name} className="flex justify-between text-xs">
+                        <span className="text-foreground/90">{d.name}</span>
+                        <span className="text-muted-foreground">{d.price}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </motion.article>
+            ))}
+          </motion.section>
+        )}
+
+        {tab === "Lista de espera" && (
+          <motion.section
+            key="waitlist"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25 }}
+            className="mt-6 flex flex-col gap-3 px-5"
+          >
+            {waitlist.map((r, i) => (
+              <motion.article
+                key={r.name}
+                custom={i}
+                variants={itemAnim}
+                initial="hidden"
+                animate="show"
+                className="flex items-center gap-3 overflow-hidden rounded-2xl border border-gold/30 bg-card p-3"
+              >
+                <img src={r.img} alt={r.name} className="h-14 w-14 rounded-xl object-cover" loading="lazy" />
+                <div className="flex-1">
+                  <p className="font-display text-base">{r.name}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {r.date} · {r.time} · {r.people} pessoas
+                  </p>
+                </div>
+                <div className="flex flex-col items-end">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2.5 py-1 text-[10px] font-semibold text-gold">
+                    <Hourglass size={10} /> #{r.position}
+                  </span>
+                  <span className="mt-1 text-[10px] text-muted-foreground">na fila</span>
+                </div>
+              </motion.article>
+            ))}
+          </motion.section>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {modal?.kind === "details" && (
+          <DetailsModal r={modal.r} onClose={() => setModal(null)} />
+        )}
+        {modal?.kind === "reschedule" && (
+          <RescheduleModal
+            r={modal.r}
+            onClose={() => setModal(null)}
+            onConfirm={(d, t) => reschedule(modal.r.name, d, t)}
+          />
+        )}
+      </AnimatePresence>
+    </MobileShell>
+  );
+}
+
+function ReservationCard({
+  r,
+  i,
+  isFav,
+  onToggleFav,
+  onDetails,
+  onReschedule,
+}: {
+  r: Reservation;
+  i: number;
+  isFav: boolean;
+  onToggleFav: () => void;
+  onDetails: () => void;
+  onReschedule: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [menu, setMenu] = useState(false);
+
+  return (
+    <motion.article
+      custom={i}
+      variants={itemAnim}
+      initial="hidden"
+      animate="show"
+      className="overflow-hidden rounded-2xl border border-border/60 bg-card glow-soft"
+    >
+      <div className="relative h-[140px]">
+        <img src={r.img} alt={r.name} className="h-full w-full object-cover" loading="lazy" />
+        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
+        <div className="absolute right-3 top-3 flex items-center gap-1.5">
+          <span
+            className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${
+              r.status === "Confirmada"
+                ? "bg-primary/90 text-primary-foreground"
+                : "bg-gold/20 text-gold border border-gold/30"
+            }`}
+          >
+            ● {r.status}
+          </span>
+          <button
+            onClick={onToggleFav}
+            aria-label="Favoritar"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border/60 bg-background/70 backdrop-blur"
+          >
+            <motion.span
+              key={isFav ? "on" : "off"}
+              initial={{ scale: 0.6 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 500, damping: 20 }}
+            >
+              <Heart
+                size={14}
+                className={isFav ? "fill-primary text-primary" : "text-muted-foreground"}
+              />
+            </motion.span>
+          </button>
+        </div>
+        <div className="absolute bottom-3 left-4">
+          <h3 className="font-display text-xl">{r.name}</h3>
+          <p className="text-[11px] text-muted-foreground">{r.address}</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-3 divide-x divide-border/60 px-1 py-3 text-center">
+        <Stat icon={<Calendar size={13} />} label={r.date} />
+        <Stat icon={<Clock size={13} />} label={r.time} />
+        <Stat icon={<Users size={13} />} label={`${r.people} pessoas`} />
+      </div>
+
+      {/* Dishes preview */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between border-t border-border/60 px-4 py-3 text-left"
+      >
+        <div>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Pratos do restaurante
+          </p>
+          <p className="text-xs text-foreground/90">
+            {r.dishes.length} sugestões a partir de{" "}
+            <span className="text-gold">{r.dishes[r.dishes.length - 1].price}</span>
+          </p>
+        </div>
+        <motion.span animate={{ rotate: open ? 180 : 0 }} className="text-muted-foreground">
+          <ChevronDown size={16} />
+        </motion.span>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.ul
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden border-t border-border/60 px-4"
+          >
+            {r.dishes.map((d, idx) => (
+              <li
+                key={d.name}
+                className={`flex justify-between py-2.5 text-xs ${
+                  idx < r.dishes.length - 1 ? "border-b border-border/40" : ""
+                }`}
+              >
+                <span className="text-foreground/90">{d.name}</span>
+                <span className="text-gold">{d.price}</span>
+              </li>
+            ))}
+          </motion.ul>
+        )}
+      </AnimatePresence>
+
+      <div className="relative flex gap-2 border-t border-border/60 p-3">
+        <button
+          onClick={onDetails}
+          className="flex-1 rounded-xl bg-primary py-2.5 text-xs font-semibold text-primary-foreground"
+        >
+          Detalhes
+        </button>
+        <button
+          onClick={onReschedule}
+          className="rounded-xl border border-border/60 bg-surface px-3 py-2.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Reagendar
+        </button>
+        <button
+          onClick={() => setMenu((v) => !v)}
+          aria-haspopup="menu"
+          aria-expanded={menu}
+          className="flex h-[38px] w-[38px] items-center justify-center rounded-xl border border-border/60 bg-surface text-muted-foreground"
+        >
+          <MoreHorizontal size={15} />
+        </button>
+
+        <AnimatePresence>
+          {menu && (
+            <>
+              <button
+                aria-label="fechar menu"
+                onClick={() => setMenu(false)}
+                className="fixed inset-0 z-40 cursor-default"
+              />
+              <motion.div
+                role="menu"
+                initial={{ opacity: 0, y: 6, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 6, scale: 0.96 }}
+                transition={{ duration: 0.15 }}
+                className="absolute bottom-14 right-3 z-50 w-48 overflow-hidden rounded-xl border border-border/60 bg-surface-elevated shadow-2xl"
+              >
+                <MenuItem icon={<Share2 size={13} />} label="Compartilhar" onClick={() => setMenu(false)} />
+                <MenuItem icon={<Bell size={13} />} label="Lembrete" onClick={() => setMenu(false)} />
+                <MenuItem
+                  icon={<XCircle size={13} />}
+                  label="Cancelar reserva"
+                  onClick={() => setMenu(false)}
+                  destructive
+                />
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.article>
+  );
+}
+
+function MenuItem({
+  icon,
+  label,
+  onClick,
+  destructive,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  destructive?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      role="menuitem"
+      className={`flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-xs transition-colors hover:bg-primary/10 ${
+        destructive ? "text-red-400" : "text-foreground/90"
+      }`}
+    >
+      <span className={destructive ? "text-red-400" : "text-muted-foreground"}>{icon}</span>
+      {label}
+    </button>
+  );
+}
+
+function Stat({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <div className="flex flex-col items-center gap-1 px-2">
+      <span className="text-primary">{icon}</span>
+      <span className="text-[11px] text-foreground">{label}</span>
+    </div>
+  );
+}
+
+function ModalShell({
+  children,
+  onClose,
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-background/70 backdrop-blur-sm sm:items-center"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ y: 60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 60, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 360, damping: 34 }}
+        onClick={(e) => e.stopPropagation()}
+        className="relative max-h-[88vh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-border/60 bg-surface-elevated sm:rounded-3xl no-scrollbar"
+      >
+        {children}
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function DetailsModal({ r, onClose }: { r: Reservation; onClose: () => void }) {
+  return (
+    <ModalShell onClose={onClose}>
+      <div className="relative h-[200px]">
+        <img src={r.img} alt={r.name} className="h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-surface-elevated via-surface-elevated/30 to-transparent" />
+        <button
+          onClick={onClose}
+          aria-label="Fechar"
+          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-background/70 backdrop-blur"
+        >
+          <X size={15} />
+        </button>
+        <div className="absolute bottom-4 left-5 right-5">
+          <p className="text-[10px] uppercase tracking-wider text-gold">{r.cuisine}</p>
+          <h3 className="font-display mt-1 text-2xl">{r.name}</h3>
+          <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Star size={11} className="fill-gold text-gold" /> {r.rating}
+            </span>
+            <span>·</span>
+            <span>{r.address.split(",")[1]?.trim() || r.address}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-5 py-5">
+        <p className="text-xs leading-relaxed text-muted-foreground">{r.description}</p>
+
+        <div className="mt-5 grid grid-cols-3 divide-x divide-border/60 rounded-2xl border border-border/60 bg-card py-3 text-center">
+          <Stat icon={<Calendar size={13} />} label={r.date} />
+          <Stat icon={<Clock size={13} />} label={r.time} />
+          <Stat icon={<Users size={13} />} label={`${r.people} pessoas`} />
+        </div>
+
+        <div className="mt-5 space-y-2.5">
+          <InfoLine icon={<MapPin size={13} />} label={r.address} />
+          <InfoLine icon={<Phone size={13} />} label={r.phone} />
+        </div>
+
+        <div className="mt-6">
+          <div className="flex items-end justify-between">
+            <h4 className="font-display text-lg">Pratos principais</h4>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              {r.dishes.length} itens
+            </span>
+          </div>
+          <ul className="mt-3 space-y-2">
+            {r.dishes.map((d) => (
+              <li
+                key={d.name}
+                className="flex items-start justify-between gap-3 rounded-xl border border-border/60 bg-card px-3.5 py-3"
+              >
+                <div>
+                  <p className="text-sm text-foreground">{d.name}</p>
+                  {d.description && (
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">{d.description}</p>
+                  )}
+                </div>
+                <span className="font-display shrink-0 text-sm text-gold">{d.price}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="sticky bottom-0 -mx-5 mt-6 flex gap-2 border-t border-border/60 bg-surface-elevated px-5 py-4">
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-xl border border-border/60 bg-surface py-3 text-xs font-medium text-muted-foreground"
+          >
+            Fechar
+          </button>
+          <button className="flex-[2] rounded-xl bg-primary py-3 text-xs font-semibold text-primary-foreground">
+            Confirmar presença
+          </button>
+        </div>
+      </div>
+    </ModalShell>
+  );
+}
+
+function InfoLine({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <div className="flex items-center gap-2.5 text-xs text-foreground/90">
+      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        {icon}
+      </span>
+      {label}
+    </div>
+  );
+}
+
+const RESCHEDULE_DAYS = [
+  { date: "Sex, 16 Mai", short: "16", weekday: "Sex" },
+  { date: "Sáb, 17 Mai", short: "17", weekday: "Sáb" },
+  { date: "Dom, 18 Mai", short: "18", weekday: "Dom" },
+  { date: "Seg, 19 Mai", short: "19", weekday: "Seg" },
+  { date: "Ter, 20 Mai", short: "20", weekday: "Ter" },
+  { date: "Qua, 21 Mai", short: "21", weekday: "Qua" },
+  { date: "Qui, 22 Mai", short: "22", weekday: "Qui" },
+];
+
+const TIMES = ["19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00"];
+
+function RescheduleModal({
+  r,
+  onClose,
+  onConfirm,
+}: {
+  r: Reservation;
+  onClose: () => void;
+  onConfirm: (date: string, time: string) => void;
+}) {
+  const [date, setDate] = useState(r.date);
+  const [time, setTime] = useState(r.time);
+
+  return (
+    <ModalShell onClose={onClose}>
+      <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border/60"
+          >
+            <ChevronLeft size={14} />
+          </button>
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Reagendar</p>
+            <p className="font-display text-base">{r.name}</p>
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-border/60"
+        >
+          <X size={14} />
+        </button>
+      </div>
+
+      <div className="px-5 py-5">
+        <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+          Escolha uma data
+        </p>
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          {RESCHEDULE_DAYS.map((d) => {
+            const active = date === d.date;
+            return (
+              <button
+                key={d.date}
+                onClick={() => setDate(d.date)}
+                className={`relative flex w-[60px] shrink-0 flex-col items-center rounded-2xl border px-2 py-3 transition-colors ${
+                  active
+                    ? "border-primary/50 bg-primary/15 text-primary"
+                    : "border-border/60 bg-surface/60 text-muted-foreground"
+                }`}
+              >
+                <span className="text-[10px] uppercase tracking-wider">{d.weekday}</span>
+                <span className="font-display mt-1 text-xl">{d.short}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <p className="mt-6 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+          Horários disponíveis
+        </p>
+        <div className="mt-3 grid grid-cols-4 gap-2">
+          {TIMES.map((t) => {
+            const active = time === t;
+            return (
+              <button
+                key={t}
+                onClick={() => setTime(t)}
+                className={`relative rounded-xl border py-2.5 text-xs transition-colors ${
+                  active
+                    ? "border-primary/50 bg-primary/15 text-primary"
+                    : "border-border/60 bg-surface/60 text-muted-foreground"
+                }`}
+              >
+                {active && (
+                  <motion.span
+                    layoutId="time-pill"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="absolute inset-0 -z-10 rounded-xl bg-primary/15"
+                  />
+                )}
+                {t}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-border/60 bg-card p-4">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Resumo</p>
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-sm">{date}</span>
+            <span className="font-display text-base text-gold">{time}</span>
+          </div>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            {r.people} pessoas · {r.address.split(",")[1]?.trim() || r.address}
+          </p>
+        </div>
+
+        <button
+          onClick={() => onConfirm(date, time)}
+          className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground"
+        >
+          Confirmar nova data <ChevronRight size={15} />
+        </button>
+      </div>
+    </ModalShell>
+  );
+}
