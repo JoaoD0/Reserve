@@ -17,9 +17,10 @@ export function useCreateReservation() {
         await new Promise((r) => setTimeout(r, 900));
         return { confirmation_code: code };
       }
+      const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("reservations")
-        .insert({ ...input, status: "confirmed", confirmation_code: code })
+        .insert({ ...input, user_id: user?.id, status: "pending", confirmation_code: code })
         .select("confirmation_code")
         .single();
       if (error) throw error;

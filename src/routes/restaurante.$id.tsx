@@ -190,8 +190,8 @@ function RestaurantPage() {
         contact_phone: phone,
       });
       setSuccessCode(result.confirmation_code);
-    } catch {
-      toast.error("Erro ao criar reserva. Tente novamente.");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Erro ao criar reserva.");
     }
   }
 
