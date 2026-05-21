@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus, X, Pencil, Star } from "lucide-react";
+import { Plus, X, Pencil, Star, Loader2, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 
@@ -38,6 +38,42 @@ function AdminRestaurantes() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Restaurant | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [cep, setCep] = useState("");
+  const [geocoding, setGeocoding] = useState(false);
+
+  async function lookupCep(rawCep: string) {
+    const digits = rawCep.replace(/\D/g, "");
+    if (digits.length !== 8) return;
+    setGeocoding(true);
+    try {
+      const viaRes = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const via = await viaRes.json();
+      if (via.erro) { toast.error("CEP não encontrado."); return; }
+
+      setForm((f) => ({
+        ...f,
+        address: via.logradouro ? `${via.logradouro}, ${via.bairro}` : f.address,
+        location: via.bairro ? `${via.bairro}, ${via.localidade}` : via.localidade,
+      }));
+
+      const query = `${via.logradouro ?? ""}, ${via.localidade}, ${via.uf}, Brasil`;
+      const nomRes = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
+        { headers: { "User-Agent": "Reserve-App/1.0" } }
+      );
+      const nom = await nomRes.json();
+      if (nom.length > 0) {
+        setForm((f) => ({ ...f, latitude: parseFloat(nom[0].lat), longitude: parseFloat(nom[0].lon) }));
+        toast.success("Localização encontrada!");
+      } else {
+        toast.warning("CEP encontrado, mas não foi possível obter coordenadas.");
+      }
+    } catch {
+      toast.error("Erro ao buscar CEP.");
+    } finally {
+      setGeocoding(false);
+    }
+  }
 
   const { data: restaurants = [], isLoading } = useQuery<Restaurant[]>({
     queryKey: ["admin", "restaurants"],
@@ -74,12 +110,14 @@ function AdminRestaurantes() {
   function openCreate() {
     setEditing(null);
     setForm(EMPTY_FORM);
+    setCep("");
     setModalOpen(true);
   }
 
   function openEdit(r: Restaurant) {
     setEditing(r);
     setForm({ name: r.name, cuisine: r.cuisine, price_range: r.price_range, rating: r.rating, image_url: r.image_url, address: r.address, location: r.location, description: r.description, opening_time: r.opening_time, closing_time: r.closing_time, latitude: r.latitude, longitude: r.longitude, is_featured: r.is_featured });
+    setCep("");
     setModalOpen(true);
   }
 
@@ -155,14 +193,10 @@ function AdminRestaurantes() {
               {([
                 ["Nome", "name", "text"],
                 ["Culinária", "cuisine", "text"],
-                ["Endereço", "address", "text"],
-                ["Bairro / Localização", "location", "text"],
                 ["URL da imagem", "image_url", "text"],
                 ["Horário de abertura", "opening_time", "time"],
                 ["Horário de fechamento", "closing_time", "time"],
                 ["Avaliação (ex: 4.8)", "rating", "number"],
-                ["Latitude", "latitude", "number"],
-                ["Longitude", "longitude", "number"],
               ] as [string, keyof typeof form, string][]).map(([label, key, type]) => (
                 <div key={key}>
                   <label className="block text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-1">{label}</label>
@@ -175,6 +209,39 @@ function AdminRestaurantes() {
                   />
                 </div>
               ))}
+
+              {/* CEP com geocoding automático */}
+              <div>
+                <label className="block text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-1">CEP</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={cep}
+                    maxLength={9}
+                    placeholder="00000-000"
+                    onChange={(e) => setCep(e.target.value)}
+                    onBlur={(e) => lookupCep(e.target.value)}
+                    className="w-full rounded-xl border border-border/60 bg-surface px-3.5 py-2.5 pr-10 text-sm focus:border-primary/60 focus:outline-none"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    {geocoding ? <Loader2 size={15} className="animate-spin" /> : <MapPin size={15} />}
+                  </span>
+                </div>
+                {form.latitude !== 0 && (
+                  <p className="mt-1 text-[11px] text-emerald-400">
+                    Coordenadas encontradas: {form.latitude.toFixed(4)}, {form.longitude.toFixed(4)}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-1">Endereço</label>
+                <input type="text" value={form.address} onChange={field("address")} className="w-full rounded-xl border border-border/60 bg-surface px-3.5 py-2.5 text-sm focus:border-primary/60 focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-1">Bairro / Localização</label>
+                <input type="text" value={form.location} onChange={field("location")} className="w-full rounded-xl border border-border/60 bg-surface px-3.5 py-2.5 text-sm focus:border-primary/60 focus:outline-none" />
+              </div>
 
               <div>
                 <label className="block text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-1">Faixa de preço</label>
