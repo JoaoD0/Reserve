@@ -17,13 +17,18 @@ import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as RestauranteIdRouteImport } from './routes/restaurante.$id'
 import { Route as PerfilNotificacoesRouteImport } from './routes/perfil.notificacoes'
 import { Route as PerfilFavoritosRouteImport } from './routes/perfil.favoritos'
 import { Route as PerfilDadosRouteImport } from './routes/perfil.dados'
 import { Route as PerfilAjudaRouteImport } from './routes/perfil.ajuda'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AdminRestaurantesRouteImport } from './routes/admin.restaurantes'
+import { Route as AdminReservasRouteImport } from './routes/admin.reservas'
+import { Route as AdminProprietariosRouteImport } from './routes/admin.proprietarios'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -65,10 +70,20 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const RestauranteIdRoute = RestauranteIdRouteImport.update({
   id: '/restaurante/$id',
@@ -100,9 +115,25 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRestaurantesRoute = AdminRestaurantesRouteImport.update({
+  id: '/restaurantes',
+  path: '/restaurantes',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminReservasRoute = AdminReservasRouteImport.update({
+  id: '/reservas',
+  path: '/reservas',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProprietariosRoute = AdminProprietariosRouteImport.update({
+  id: '/proprietarios',
+  path: '/proprietarios',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
@@ -111,12 +142,16 @@ export interface FileRoutesByFullPath {
   '/reservas': typeof ReservasRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/admin/proprietarios': typeof AdminProprietariosRoute
+  '/admin/reservas': typeof AdminReservasRoute
+  '/admin/restaurantes': typeof AdminRestaurantesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/perfil/ajuda': typeof PerfilAjudaRoute
   '/perfil/dados': typeof PerfilDadosRoute
   '/perfil/favoritos': typeof PerfilFavoritosRoute
   '/perfil/notificacoes': typeof PerfilNotificacoesRoute
   '/restaurante/$id': typeof RestauranteIdRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -128,16 +163,21 @@ export interface FileRoutesByTo {
   '/reservas': typeof ReservasRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/admin/proprietarios': typeof AdminProprietariosRoute
+  '/admin/reservas': typeof AdminReservasRoute
+  '/admin/restaurantes': typeof AdminRestaurantesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/perfil/ajuda': typeof PerfilAjudaRoute
   '/perfil/dados': typeof PerfilDadosRoute
   '/perfil/favoritos': typeof PerfilFavoritosRoute
   '/perfil/notificacoes': typeof PerfilNotificacoesRoute
   '/restaurante/$id': typeof RestauranteIdRoute
+  '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
@@ -146,17 +186,22 @@ export interface FileRoutesById {
   '/reservas': typeof ReservasRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/admin/proprietarios': typeof AdminProprietariosRoute
+  '/admin/reservas': typeof AdminReservasRoute
+  '/admin/restaurantes': typeof AdminRestaurantesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/perfil/ajuda': typeof PerfilAjudaRoute
   '/perfil/dados': typeof PerfilDadosRoute
   '/perfil/favoritos': typeof PerfilFavoritosRoute
   '/perfil/notificacoes': typeof PerfilNotificacoesRoute
   '/restaurante/$id': typeof RestauranteIdRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/forgot-password'
     | '/login'
     | '/onboarding'
@@ -165,12 +210,16 @@ export interface FileRouteTypes {
     | '/reservas'
     | '/reset-password'
     | '/signup'
+    | '/admin/proprietarios'
+    | '/admin/reservas'
+    | '/admin/restaurantes'
     | '/auth/callback'
     | '/perfil/ajuda'
     | '/perfil/dados'
     | '/perfil/favoritos'
     | '/perfil/notificacoes'
     | '/restaurante/$id'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -182,15 +231,20 @@ export interface FileRouteTypes {
     | '/reservas'
     | '/reset-password'
     | '/signup'
+    | '/admin/proprietarios'
+    | '/admin/reservas'
+    | '/admin/restaurantes'
     | '/auth/callback'
     | '/perfil/ajuda'
     | '/perfil/dados'
     | '/perfil/favoritos'
     | '/perfil/notificacoes'
     | '/restaurante/$id'
+    | '/admin'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/forgot-password'
     | '/login'
     | '/onboarding'
@@ -199,16 +253,21 @@ export interface FileRouteTypes {
     | '/reservas'
     | '/reset-password'
     | '/signup'
+    | '/admin/proprietarios'
+    | '/admin/reservas'
+    | '/admin/restaurantes'
     | '/auth/callback'
     | '/perfil/ajuda'
     | '/perfil/dados'
     | '/perfil/favoritos'
     | '/perfil/notificacoes'
     | '/restaurante/$id'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -279,12 +338,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/restaurante/$id': {
       id: '/restaurante/$id'
@@ -328,8 +401,45 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/restaurantes': {
+      id: '/admin/restaurantes'
+      path: '/restaurantes'
+      fullPath: '/admin/restaurantes'
+      preLoaderRoute: typeof AdminRestaurantesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/reservas': {
+      id: '/admin/reservas'
+      path: '/reservas'
+      fullPath: '/admin/reservas'
+      preLoaderRoute: typeof AdminReservasRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/proprietarios': {
+      id: '/admin/proprietarios'
+      path: '/proprietarios'
+      fullPath: '/admin/proprietarios'
+      preLoaderRoute: typeof AdminProprietariosRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
+
+interface AdminRouteChildren {
+  AdminProprietariosRoute: typeof AdminProprietariosRoute
+  AdminReservasRoute: typeof AdminReservasRoute
+  AdminRestaurantesRoute: typeof AdminRestaurantesRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminProprietariosRoute: AdminProprietariosRoute,
+  AdminReservasRoute: AdminReservasRoute,
+  AdminRestaurantesRoute: AdminRestaurantesRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface PerfilRouteChildren {
   PerfilAjudaRoute: typeof PerfilAjudaRoute
@@ -350,6 +460,7 @@ const PerfilRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,

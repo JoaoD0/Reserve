@@ -28,7 +28,7 @@ function LoginPage() {
     const parsed = schema.safeParse({ email, password });
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setLoading(true);
-    const { error } = await supabase!.auth.signInWithPassword(parsed.data);
+    const { error, data } = await supabase!.auth.signInWithPassword(parsed.data);
     setLoading(false);
     if (error?.message?.includes("Email not confirmed")) {
       toast.error("Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.");
@@ -38,6 +38,15 @@ function LoginPage() {
     localStorage.setItem("reserve.keepLoggedIn", keepLoggedIn ? "true" : "false");
     sessionStorage.setItem("reserve.sessionActive", "1");
     toast.success("Bem-vindo de volta!");
+
+    const { data: prof } = await supabase!
+      .from("profiles")
+      .select("role")
+      .eq("id", data.user!.id)
+      .single();
+    const role = prof?.role ?? "customer";
+    if (role === "admin") { window.location.replace("/admin"); return; }
+    if (role === "owner") { window.location.replace("/owner"); return; }
     navigate({ to: redirect });
   };
 
