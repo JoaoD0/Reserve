@@ -21,7 +21,7 @@ export function useAuth() {
       .from("profiles")
       .select("id, full_name, role, restaurant_id")
       .eq("id", userId)
-      .single();
+      .maybeSingle();
     setProfile((data as Profile) ?? null);
   }
 

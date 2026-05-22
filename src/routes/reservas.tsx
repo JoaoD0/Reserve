@@ -150,7 +150,7 @@ function Reservas() {
       if (!supabase || !user) return [];
       const { data, error } = await supabase
         .from("reservations")
-        .select(`*, restaurants(name, image_url, address, cuisine, rating, phone)`)
+        .select(`*, restaurants(name, image_url, address, cuisine, rating)`)
         .in("status", ["confirmed", "pending"])
         .order("reservation_date", { ascending: true });
       if (error) throw error;
@@ -165,7 +165,7 @@ function Reservas() {
         time: r.time_slot,
         people: r.party_size,
         address: r.restaurants?.address ?? "",
-        phone: r.restaurants?.phone ?? r.contact_phone ?? "",
+        phone: r.contact_phone ?? "",
         rating: r.restaurants?.rating ?? 0,
         cuisine: r.restaurants?.cuisine ?? "",
         description: "",
@@ -482,47 +482,52 @@ function ReservationCard({
         <Stat icon={<Users size={13} />} label={`${r.people} pessoas`} />
       </div>
 
-      {/* Dishes preview */}
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between border-t border-border/60 px-4 py-3 text-left"
-      >
-        <div>
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-            Pratos do restaurante
-          </p>
-          <p className="text-xs text-foreground/90">
-            {r.dishes.length} sugestões a partir de{" "}
-            <span className="text-gold">{r.dishes[r.dishes.length - 1].price}</span>
-          </p>
-        </div>
-        <motion.span animate={{ rotate: open ? 180 : 0 }} className="text-muted-foreground">
-          <ChevronDown size={16} />
-        </motion.span>
-      </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.ul
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden border-t border-border/60 px-4"
+      {/* Dishes preview — only shown when dishes exist */}
+      {r.dishes.length > 0 && (
+        <>
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="flex w-full items-center justify-between border-t border-border/60 px-4 py-3 text-left"
           >
-            {r.dishes.map((d, idx) => (
-              <li
-                key={d.name}
-                className={`flex justify-between py-2.5 text-xs ${
-                  idx < r.dishes.length - 1 ? "border-b border-border/40" : ""
-                }`}
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Pratos do restaurante
+              </p>
+              <p className="text-xs text-foreground/90">
+                {r.dishes.length} sugestões a partir de{" "}
+                <span className="text-gold">{r.dishes[r.dishes.length - 1].price}</span>
+              </p>
+            </div>
+            <motion.span animate={{ rotate: open ? 180 : 0 }} className="text-muted-foreground">
+              <ChevronDown size={16} />
+            </motion.span>
+          </button>
+          <AnimatePresence initial={false}>
+            {open && (
+              <motion.ul
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                className="overflow-hidden border-t border-border/60 px-4"
               >
-                <span className="text-foreground/90">{d.name}</span>
-                <span className="text-gold">{d.price}</span>
-              </li>
-            ))}
-          </motion.ul>
-        )}
-      </AnimatePresence>
+                {r.dishes.map((d, idx) => (
+                  <li
+                    key={d.name}
+                    className={`flex justify-between py-2.5 text-xs ${
+                      idx < r.dishes.length - 1 ? "border-b border-border/40" : ""
+                    }`}
+                  >
+                    <span className="text-foreground/90">{d.name}</span>
+                    <span className="text-gold">{d.price}</span>
+                  </li>
+                ))}
+              </motion.ul>
+            )}
+          </AnimatePresence>
+        </>
+      )}
+
 
       <div className="relative flex gap-2 border-t border-border/60 p-3">
         <button
