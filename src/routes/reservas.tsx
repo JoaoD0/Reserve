@@ -8,7 +8,6 @@ import {
   Users,
   MoreHorizontal,
   ChevronDown,
-  Hourglass,
   Heart,
   X,
   MapPin,
@@ -26,8 +25,6 @@ import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import sushiImg from "@/assets/sushi.jpg";
-import pastaImg from "@/assets/pasta.jpg";
-import burgerImg from "@/assets/burger.jpg";
 
 export const Route = createFileRoute("/reservas")({
   component: Reservas,
@@ -94,32 +91,7 @@ const upcomingSeed: Reservation[] = [
   },
 ];
 
-const past = [
-  {
-    name: "Brasa & Cobre",
-    img: burgerImg,
-    date: "02 Mai",
-    people: 3,
-    total: "R$ 412",
-    dishes: [
-      { name: "Tomahawk dry-aged", price: "R$ 248" },
-      { name: "Batata rústica defumada", price: "R$ 42" },
-    ],
-  },
-];
-
-const waitlist = [
-  {
-    name: "Casa Tucupi",
-    img: pastaImg,
-    date: "Qui, 22 Mai",
-    time: "20:00",
-    people: 2,
-    position: 3,
-  },
-];
-
-const tabs = ["Próximas", "Club", "Histórico", "Espera"] as const;
+const tabs = ["Próximas", "Club", "Histórico"] as const;
 type Tab = (typeof tabs)[number];
 
 const TYPE_LABELS: Record<string, string> = {
@@ -371,40 +343,17 @@ function Reservas() {
             transition={{ duration: 0.25 }}
             className="mt-6 flex flex-col gap-3 px-5"
           >
-            {past.map((r, i) => (
-              <motion.article
-                key={r.name}
-                custom={i}
-                variants={itemAnim}
-                initial="hidden"
-                animate="show"
-                className="overflow-hidden rounded-2xl border border-border/60 bg-card"
-              >
-                <div className="flex items-center gap-3 p-3">
-                  <img src={r.img} alt={r.name} className="h-14 w-14 rounded-xl object-cover" loading="lazy" />
-                  <div className="flex-1">
-                    <p className="font-display text-base">{r.name}</p>
-                    <p className="text-[11px] text-muted-foreground">
-                      Visita em {r.date} · {r.people} pessoas
-                    </p>
-                  </div>
-                  <span className="font-display text-sm text-gold">{r.total}</span>
-                </div>
-                <div className="border-t border-border/60 px-4 py-3">
-                  <p className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Pedido
-                  </p>
-                  <ul className="flex flex-col gap-1.5">
-                    {r.dishes.map((d) => (
-                      <li key={d.name} className="flex justify-between text-xs">
-                        <span className="text-foreground/90">{d.name}</span>
-                        <span className="text-muted-foreground">{d.price}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </motion.article>
-            ))}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center gap-3 py-16 text-center"
+            >
+              <p className="text-4xl">🍽️</p>
+              <p className="font-display text-lg text-foreground">Sem histórico ainda</p>
+              <p className="text-sm text-muted-foreground">
+                Suas reservas concluídas aparecerão aqui.
+              </p>
+            </motion.div>
           </motion.section>
         )}
 
@@ -443,41 +392,6 @@ function Reservas() {
           </motion.section>
         )}
 
-        {tab === "Espera" && (
-          <motion.section
-            key="waitlist"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.25 }}
-            className="mt-6 flex flex-col gap-3 px-5"
-          >
-            {waitlist.map((r, i) => (
-              <motion.article
-                key={r.name}
-                custom={i}
-                variants={itemAnim}
-                initial="hidden"
-                animate="show"
-                className="flex items-center gap-3 overflow-hidden rounded-2xl border border-gold/30 bg-card p-3"
-              >
-                <img src={r.img} alt={r.name} className="h-14 w-14 rounded-xl object-cover" loading="lazy" />
-                <div className="flex-1">
-                  <p className="font-display text-base">{r.name}</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {r.date} · {r.time} · {r.people} pessoas
-                  </p>
-                </div>
-                <div className="flex flex-col items-end">
-                  <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2.5 py-1 text-[10px] font-semibold text-gold">
-                    <Hourglass size={10} /> #{r.position}
-                  </span>
-                  <span className="mt-1 text-[10px] text-muted-foreground">na fila</span>
-                </div>
-              </motion.article>
-            ))}
-          </motion.section>
-        )}
       </AnimatePresence>
 
       <AnimatePresence>
