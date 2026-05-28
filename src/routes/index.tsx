@@ -417,9 +417,9 @@ function Home() {
           <p className="mt-1 text-xs text-muted-foreground">
             Jantares fechados, harmonizações e mesas exclusivas todo mês.
           </p>
-          <button className="mt-3 rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background">
+          <Link to="/clube" className="mt-3 inline-block rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background">
             Conhecer →
-          </button>
+          </Link>
         </motion.div>
       </section>
 

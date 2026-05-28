@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useRouterState } from "@tanstack/react-router";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -23,6 +24,9 @@ function ChatUI({ onClose }: { onClose?: () => void }) {
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isClube = pathname.startsWith("/clube");
+  const context = isClube ? "clube" : "default";
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -39,7 +43,7 @@ function ChatUI({ onClose }: { onClose?: () => void }) {
 
     try {
       const { data, error } = await supabase!.functions.invoke("chat-support", {
-        body: { messages: next.map((m) => ({ role: m.role, content: m.content })) },
+        body: { messages: next.map((m) => ({ role: m.role, content: m.content })), context },
       });
       if (error) throw error;
       setMsgs([...next, { role: "assistant", content: data.reply }]);

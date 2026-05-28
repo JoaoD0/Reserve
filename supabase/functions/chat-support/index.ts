@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM_PROMPT = `Você é o Breno, assistente virtual do Reservê — um app brasileiro de reservas em restaurantes. Seja simpático, direto e responda sempre em português brasileiro.
+const SYSTEM_PROMPT_DEFAULT = `Você é o Breno, assistente virtual do Reservê — um app brasileiro de reservas em restaurantes. Seja simpático, direto e responda sempre em português brasileiro.
 
 Você pode ajudar com:
 - Como fazer, cancelar ou alterar reservas
@@ -14,6 +14,18 @@ Você pode ajudar com:
 - Informações gerais sobre o Reservê
 
 Se não souber responder algo específico, oriente o usuário a contatar o suporte via WhatsApp ou e-mail (ajuda@reserve.app). Nunca invente informações sobre restaurantes ou reservas específicas do usuário.`;
+
+const SYSTEM_PROMPT_CLUBE = `Você é o Breno, curador de experiências do Reservê Club — uma seleção exclusiva de vivências gastronômicas únicas. Adote uma postura sofisticada, elegante e acolhedora, como um maître de alto nível.
+
+Você guia o usuário pelas experiências disponíveis:
+- Mesa do Chef: acompanhe o preparo ao vivo com o chef
+- Jantar Privado: salão exclusivo com menu personalizado
+- Harmonização: jornada guiada de vinhos e gastronomia
+- Menu Degustação Secreto: surpresa curada pelo chef, fora do cardápio
+- Mesa às Cegas: entregue-se ao chef, sem saber o que virá
+
+Fale com refinamento. Use termos como "uma vivência única", "uma noite memorável", "deixe-nos conduzir sua experiência". Nunca seja informal demais. Responda sempre em português brasileiro culto.`;
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -37,7 +49,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Não autenticado." }), { status: 401, headers: corsHeaders });
     }
 
-    const { messages } = await req.json();
+    const { messages, context } = await req.json();
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "messages é obrigatório." }), { status: 400, headers: corsHeaders });
     }
@@ -46,6 +58,8 @@ Deno.serve(async (req) => {
     if (!groqKey) {
       return new Response(JSON.stringify({ error: "GROQ_API_KEY não configurado." }), { status: 500, headers: corsHeaders });
     }
+
+    const systemPrompt = context === "clube" ? SYSTEM_PROMPT_CLUBE : SYSTEM_PROMPT_DEFAULT;
 
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -56,7 +70,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: systemPrompt },
           ...messages,
         ],
         max_tokens: 512,

@@ -18,6 +18,7 @@ import { Route as OwnerRouteImport } from './routes/owner'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as ClubeRouteImport } from './routes/clube'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OwnerIndexRouteImport } from './routes/owner.index'
@@ -28,6 +29,8 @@ import { Route as PerfilFavoritosRouteImport } from './routes/perfil.favoritos'
 import { Route as PerfilDadosRouteImport } from './routes/perfil.dados'
 import { Route as PerfilAjudaRouteImport } from './routes/perfil.ajuda'
 import { Route as OwnerReservasRouteImport } from './routes/owner.reservas'
+import { Route as OwnerExperienciasRouteImport } from './routes/owner.experiencias'
+import { Route as ClubeIdRouteImport } from './routes/clube.$id'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AdminRestaurantesRouteImport } from './routes/admin.restaurantes'
 import { Route as AdminReservasRouteImport } from './routes/admin.reservas'
@@ -76,6 +79,11 @@ const LoginRoute = LoginRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClubeRoute = ClubeRouteImport.update({
+  id: '/clube',
+  path: '/clube',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -128,6 +136,16 @@ const OwnerReservasRoute = OwnerReservasRouteImport.update({
   path: '/reservas',
   getParentRoute: () => OwnerRoute,
 } as any)
+const OwnerExperienciasRoute = OwnerExperienciasRouteImport.update({
+  id: '/experiencias',
+  path: '/experiencias',
+  getParentRoute: () => OwnerRoute,
+} as any)
+const ClubeIdRoute = ClubeIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ClubeRoute,
+} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
@@ -152,6 +170,7 @@ const AdminProprietariosRoute = AdminProprietariosRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/clube': typeof ClubeRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
@@ -165,6 +184,8 @@ export interface FileRoutesByFullPath {
   '/admin/reservas': typeof AdminReservasRoute
   '/admin/restaurantes': typeof AdminRestaurantesRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/clube/$id': typeof ClubeIdRoute
+  '/owner/experiencias': typeof OwnerExperienciasRoute
   '/owner/reservas': typeof OwnerReservasRoute
   '/perfil/ajuda': typeof PerfilAjudaRoute
   '/perfil/dados': typeof PerfilDadosRoute
@@ -176,6 +197,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/clube': typeof ClubeRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
@@ -188,6 +210,8 @@ export interface FileRoutesByTo {
   '/admin/reservas': typeof AdminReservasRoute
   '/admin/restaurantes': typeof AdminRestaurantesRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/clube/$id': typeof ClubeIdRoute
+  '/owner/experiencias': typeof OwnerExperienciasRoute
   '/owner/reservas': typeof OwnerReservasRoute
   '/perfil/ajuda': typeof PerfilAjudaRoute
   '/perfil/dados': typeof PerfilDadosRoute
@@ -201,6 +225,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/clube': typeof ClubeRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
@@ -214,6 +239,8 @@ export interface FileRoutesById {
   '/admin/reservas': typeof AdminReservasRoute
   '/admin/restaurantes': typeof AdminRestaurantesRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/clube/$id': typeof ClubeIdRoute
+  '/owner/experiencias': typeof OwnerExperienciasRoute
   '/owner/reservas': typeof OwnerReservasRoute
   '/perfil/ajuda': typeof PerfilAjudaRoute
   '/perfil/dados': typeof PerfilDadosRoute
@@ -228,6 +255,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/clube'
     | '/forgot-password'
     | '/login'
     | '/onboarding'
@@ -241,6 +269,8 @@ export interface FileRouteTypes {
     | '/admin/reservas'
     | '/admin/restaurantes'
     | '/auth/callback'
+    | '/clube/$id'
+    | '/owner/experiencias'
     | '/owner/reservas'
     | '/perfil/ajuda'
     | '/perfil/dados'
@@ -252,6 +282,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/clube'
     | '/forgot-password'
     | '/login'
     | '/onboarding'
@@ -264,6 +295,8 @@ export interface FileRouteTypes {
     | '/admin/reservas'
     | '/admin/restaurantes'
     | '/auth/callback'
+    | '/clube/$id'
+    | '/owner/experiencias'
     | '/owner/reservas'
     | '/perfil/ajuda'
     | '/perfil/dados'
@@ -276,6 +309,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/clube'
     | '/forgot-password'
     | '/login'
     | '/onboarding'
@@ -289,6 +323,8 @@ export interface FileRouteTypes {
     | '/admin/reservas'
     | '/admin/restaurantes'
     | '/auth/callback'
+    | '/clube/$id'
+    | '/owner/experiencias'
     | '/owner/reservas'
     | '/perfil/ajuda'
     | '/perfil/dados'
@@ -302,6 +338,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  ClubeRoute: typeof ClubeRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -380,6 +417,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clube': {
+      id: '/clube'
+      path: '/clube'
+      fullPath: '/clube'
+      preLoaderRoute: typeof ClubeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -450,6 +494,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OwnerReservasRouteImport
       parentRoute: typeof OwnerRoute
     }
+    '/owner/experiencias': {
+      id: '/owner/experiencias'
+      path: '/experiencias'
+      fullPath: '/owner/experiencias'
+      preLoaderRoute: typeof OwnerExperienciasRouteImport
+      parentRoute: typeof OwnerRoute
+    }
+    '/clube/$id': {
+      id: '/clube/$id'
+      path: '/$id'
+      fullPath: '/clube/$id'
+      preLoaderRoute: typeof ClubeIdRouteImport
+      parentRoute: typeof ClubeRoute
+    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/auth/callback'
@@ -497,12 +555,24 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface ClubeRouteChildren {
+  ClubeIdRoute: typeof ClubeIdRoute
+}
+
+const ClubeRouteChildren: ClubeRouteChildren = {
+  ClubeIdRoute: ClubeIdRoute,
+}
+
+const ClubeRouteWithChildren = ClubeRoute._addFileChildren(ClubeRouteChildren)
+
 interface OwnerRouteChildren {
+  OwnerExperienciasRoute: typeof OwnerExperienciasRoute
   OwnerReservasRoute: typeof OwnerReservasRoute
   OwnerIndexRoute: typeof OwnerIndexRoute
 }
 
 const OwnerRouteChildren: OwnerRouteChildren = {
+  OwnerExperienciasRoute: OwnerExperienciasRoute,
   OwnerReservasRoute: OwnerReservasRoute,
   OwnerIndexRoute: OwnerIndexRoute,
 }
@@ -529,6 +599,7 @@ const PerfilRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  ClubeRoute: ClubeRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,

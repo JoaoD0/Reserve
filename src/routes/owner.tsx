@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useLocation, Link } from "@tanstack/react-router";
-import { CalendarCheck, LayoutDashboard, LogOut } from "lucide-react";
+import { CalendarCheck, LayoutDashboard, LogOut, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
 
 export const Route = createFileRoute("/owner")({
@@ -11,6 +11,7 @@ export const Route = createFileRoute("/owner")({
 const navItems = [
   { to: "/owner", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/owner/reservas", label: "Reservas", icon: CalendarCheck, exact: false },
+  { to: "/owner/experiencias", label: "Club", icon: Sparkles, exact: false },
 ] as const;
 
 function OwnerLayout() {
