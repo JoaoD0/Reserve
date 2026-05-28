@@ -71,7 +71,7 @@ const upcomingSeed: Reservation[] = [
   },
   {
     name: "Atelier Trufa",
-    img: pastaImg,
+    img: sushiImg,
     date: "Sáb, 24 Mai",
     time: "21:00",
     people: 4,
