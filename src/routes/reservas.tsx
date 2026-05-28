@@ -173,6 +173,35 @@ function Reservas() {
     enabled: isConfigured && !!user,
   });
 
+  const { data: pastReservations = [] } = useQuery({
+    queryKey: ["pastReservations", user?.id],
+    queryFn: async () => {
+      if (!supabase || !user) return [];
+      const today = new Date().toISOString().slice(0, 10);
+      // Past by date OR cancelled/completed
+      const [byDate, byStatus] = await Promise.all([
+        supabase
+          .from("reservations")
+          .select(`*, restaurants(name, image_url, address, cuisine, rating)`)
+          .lt("reservation_date", today)
+          .order("reservation_date", { ascending: false }),
+        supabase
+          .from("reservations")
+          .select(`*, restaurants(name, image_url, address, cuisine, rating)`)
+          .in("status", ["cancelled", "completed"])
+          .order("reservation_date", { ascending: false }),
+      ]);
+      const combined = [...(byDate.data ?? []), ...(byStatus.data ?? [])];
+      const seen = new Set<string>();
+      return combined.filter((r: any) => {
+        if (seen.has(r.id)) return false;
+        seen.add(r.id);
+        return true;
+      }) as any[];
+    },
+    enabled: isConfigured && !!user,
+  });
+
   const { data: expBookings = [] } = useQuery({
     queryKey: ["expBookings", user?.id],
     queryFn: async () => {
@@ -343,17 +372,23 @@ function Reservas() {
             transition={{ duration: 0.25 }}
             className="mt-6 flex flex-col gap-3 px-5"
           >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex flex-col items-center gap-3 py-16 text-center"
-            >
-              <p className="text-4xl">🍽️</p>
-              <p className="font-display text-lg text-foreground">Sem histórico ainda</p>
-              <p className="text-sm text-muted-foreground">
-                Suas reservas concluídas aparecerão aqui.
-              </p>
-            </motion.div>
+            {pastReservations.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center gap-3 py-16 text-center"
+              >
+                <p className="text-4xl">🍽️</p>
+                <p className="font-display text-lg text-foreground">Sem histórico ainda</p>
+                <p className="text-sm text-muted-foreground">
+                  Suas reservas concluídas aparecerão aqui.
+                </p>
+              </motion.div>
+            ) : (
+              pastReservations.map((r: any, i: number) => (
+                <PastReservationCard key={r.id} r={r} i={i} />
+              ))
+            )}
           </motion.section>
         )}
 
@@ -854,6 +889,57 @@ function RescheduleModal({
         </button>
       </div>
     </ModalShell>
+  );
+}
+
+const STATUS_STYLE: Record<string, string> = {
+  completed: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  cancelled: "bg-red-500/10 text-red-400 border-red-500/20",
+  confirmed: "bg-primary/10 text-primary border-primary/20",
+  pending: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+};
+const STATUS_LABEL: Record<string, string> = {
+  completed: "Concluída",
+  cancelled: "Cancelada",
+  confirmed: "Confirmada",
+  pending: "Pendente",
+};
+
+function PastReservationCard({ r, i }: { r: any; i: number }) {
+  const restaurant = r.restaurants as any;
+
+  return (
+    <motion.article
+      custom={i}
+      variants={itemAnim}
+      initial="hidden"
+      animate="show"
+      className="overflow-hidden rounded-2xl border border-border/60 bg-card"
+    >
+      <div className="flex items-center gap-3 p-3">
+        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl">
+          {restaurant?.image_url ? (
+            <img src={restaurant.image_url} alt={restaurant.name} className="h-full w-full object-cover" loading="lazy" />
+          ) : (
+            <div className="h-full w-full bg-surface flex items-center justify-center text-xl">🍽️</div>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-display text-base truncate">{restaurant?.name ?? "Restaurante"}</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            {new Date(r.reservation_date + "T12:00:00").toLocaleDateString("pt-BR", {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })}{" · "}{r.time_slot}{" · "}{r.party_size} pessoa{r.party_size !== 1 ? "s" : ""}
+          </p>
+        </div>
+        <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-semibold ${STATUS_STYLE[r.status] ?? STATUS_STYLE.completed}`}>
+          {STATUS_LABEL[r.status] ?? r.status}
+        </span>
+      </div>
+    </motion.article>
   );
 }
 
