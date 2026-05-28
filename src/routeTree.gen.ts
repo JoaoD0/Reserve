@@ -22,6 +22,7 @@ import { Route as ClubeRouteImport } from './routes/clube'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OwnerIndexRouteImport } from './routes/owner.index'
+import { Route as ClubeIndexRouteImport } from './routes/clube.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as RestauranteIdRouteImport } from './routes/restaurante.$id'
 import { Route as PerfilNotificacoesRouteImport } from './routes/perfil.notificacoes'
@@ -100,6 +101,11 @@ const OwnerIndexRoute = OwnerIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => OwnerRoute,
+} as any)
+const ClubeIndexRoute = ClubeIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ClubeRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
@@ -193,11 +199,11 @@ export interface FileRoutesByFullPath {
   '/perfil/notificacoes': typeof PerfilNotificacoesRoute
   '/restaurante/$id': typeof RestauranteIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/clube/': typeof ClubeIndexRoute
   '/owner/': typeof OwnerIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/clube': typeof ClubeRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
@@ -219,6 +225,7 @@ export interface FileRoutesByTo {
   '/perfil/notificacoes': typeof PerfilNotificacoesRoute
   '/restaurante/$id': typeof RestauranteIdRoute
   '/admin': typeof AdminIndexRoute
+  '/clube': typeof ClubeIndexRoute
   '/owner': typeof OwnerIndexRoute
 }
 export interface FileRoutesById {
@@ -248,6 +255,7 @@ export interface FileRoutesById {
   '/perfil/notificacoes': typeof PerfilNotificacoesRoute
   '/restaurante/$id': typeof RestauranteIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/clube/': typeof ClubeIndexRoute
   '/owner/': typeof OwnerIndexRoute
 }
 export interface FileRouteTypes {
@@ -278,11 +286,11 @@ export interface FileRouteTypes {
     | '/perfil/notificacoes'
     | '/restaurante/$id'
     | '/admin/'
+    | '/clube/'
     | '/owner/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/clube'
     | '/forgot-password'
     | '/login'
     | '/onboarding'
@@ -304,6 +312,7 @@ export interface FileRouteTypes {
     | '/perfil/notificacoes'
     | '/restaurante/$id'
     | '/admin'
+    | '/clube'
     | '/owner'
   id:
     | '__root__'
@@ -332,6 +341,7 @@ export interface FileRouteTypes {
     | '/perfil/notificacoes'
     | '/restaurante/$id'
     | '/admin/'
+    | '/clube/'
     | '/owner/'
   fileRoutesById: FileRoutesById
 }
@@ -445,6 +455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OwnerIndexRouteImport
       parentRoute: typeof OwnerRoute
     }
+    '/clube/': {
+      id: '/clube/'
+      path: '/'
+      fullPath: '/clube/'
+      preLoaderRoute: typeof ClubeIndexRouteImport
+      parentRoute: typeof ClubeRoute
+    }
     '/admin/': {
       id: '/admin/'
       path: '/'
@@ -557,10 +574,12 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface ClubeRouteChildren {
   ClubeIdRoute: typeof ClubeIdRoute
+  ClubeIndexRoute: typeof ClubeIndexRoute
 }
 
 const ClubeRouteChildren: ClubeRouteChildren = {
   ClubeIdRoute: ClubeIdRoute,
+  ClubeIndexRoute: ClubeIndexRoute,
 }
 
 const ClubeRouteWithChildren = ClubeRoute._addFileChildren(ClubeRouteChildren)
