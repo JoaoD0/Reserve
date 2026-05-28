@@ -19,6 +19,7 @@ import {
   XCircle,
   ChevronLeft,
   ChevronRight,
+  Sparkles,
 } from "lucide-react";
 import { MobileShell } from "@/components/MobileShell";
 import { Logo } from "@/components/Logo";
@@ -118,8 +119,32 @@ const waitlist = [
   },
 ];
 
-const tabs = ["Próximas", "Histórico", "Lista de espera"] as const;
+const tabs = ["Próximas", "Club", "Histórico", "Espera"] as const;
 type Tab = (typeof tabs)[number];
+
+const TYPE_LABELS: Record<string, string> = {
+  chef_table: "Mesa do Chef",
+  private_dinner: "Jantar Privado",
+  harmonization: "Harmonização",
+  tasting_menu: "Menu Degustação",
+  blind_dinner: "Mesa às Cegas",
+};
+
+const TYPE_IMAGES: Record<string, string> = {
+  chef_table: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&q=80",
+  private_dinner: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
+  harmonization: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&q=80",
+  tasting_menu: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80",
+  blind_dinner: "https://images.unsplash.com/photo-1530469912745-a215c6b256ea?w=600&q=80",
+};
+
+const TYPE_ACCENT: Record<string, string> = {
+  chef_table: "#D4A853",
+  private_dinner: "#C17B7B",
+  harmonization: "#9B7EC8",
+  tasting_menu: "#6BAF8E",
+  blind_dinner: "#7B9FC1",
+};
 
 const itemAnim = {
   hidden: { opacity: 0, y: 16 },
@@ -172,6 +197,20 @@ function Reservas() {
         status: r.status === "confirmed" ? "Confirmada" : "Aguardando",
         dishes: [],
       }));
+    },
+    enabled: isConfigured && !!user,
+  });
+
+  const { data: expBookings = [] } = useQuery({
+    queryKey: ["expBookings", user?.id],
+    queryFn: async () => {
+      if (!supabase || !user) return [];
+      const { data } = await supabase
+        .from("experience_bookings")
+        .select("*, experiences(title, type, event_date, event_time, price_per_person, restaurants(name, location, image_url))")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      return (data ?? []) as any[];
     },
     enabled: isConfigured && !!user,
   });
@@ -240,30 +279,38 @@ function Reservas() {
       <section className="px-5 pt-7">
         <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Suas mesas</p>
         <h1 className="font-display mt-2 text-[34px] font-light leading-[1.05]">
-          Reservas <span className="text-gradient-gold italic">{tab.toLowerCase()}</span>
+          {tab === "Club" ? (
+            <>Reservê <span className="text-gradient-gold italic">Club</span></>
+          ) : (
+            <>Reservas <span className="text-gradient-gold italic">{tab.toLowerCase()}</span></>
+          )}
         </h1>
       </section>
 
       {/* Tabs */}
       <div className="mt-5 px-5">
-        <div className="relative flex gap-1 rounded-full border border-border/60 bg-surface/60 p-1 backdrop-blur">
+        <div className="relative flex gap-0.5 rounded-full border border-border/60 bg-surface/60 p-1 backdrop-blur">
           {tabs.map((t) => {
             const active = tab === t;
+            const isClub = t === "Club";
             return (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`relative flex-1 rounded-full py-2 text-[11px] font-medium transition-colors ${
-                  active ? "text-primary" : "text-muted-foreground"
+                className={`relative flex-1 rounded-full py-2 text-[10px] font-medium transition-colors flex items-center justify-center gap-1 ${
+                  active
+                    ? isClub ? "text-gold" : "text-primary"
+                    : "text-muted-foreground"
                 }`}
               >
                 {active && (
                   <motion.span
                     layoutId="reservas-tab-pill"
                     transition={{ type: "spring", stiffness: 400, damping: 32 }}
-                    className="absolute inset-0 rounded-full bg-primary/15"
+                    className={`absolute inset-0 rounded-full ${isClub ? "bg-gold/15" : "bg-primary/15"}`}
                   />
                 )}
+                {isClub && <Sparkles size={9} className="relative shrink-0" />}
                 <span className="relative">{t}</span>
               </button>
             );
@@ -361,7 +408,42 @@ function Reservas() {
           </motion.section>
         )}
 
-        {tab === "Lista de espera" && (
+        {tab === "Club" && (
+          <motion.section
+            key="club"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25 }}
+            className="mt-6 flex flex-col gap-4 px-5"
+          >
+            {expBookings.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center gap-3 py-16 text-center"
+              >
+                <p className="text-3xl text-gold/60">✦</p>
+                <p className="font-display text-lg">Sem experiências</p>
+                <p className="text-sm text-muted-foreground">
+                  Você ainda não reservou nenhuma experiência Club.
+                </p>
+                <Link
+                  to="/clube"
+                  className="mt-2 rounded-full bg-gold/20 border border-gold/40 px-5 py-2.5 text-sm font-semibold text-gold"
+                >
+                  Explorar experiências
+                </Link>
+              </motion.div>
+            ) : (
+              expBookings.map((b: any, i: number) => (
+                <ExperienceBookingCard key={b.id} booking={b} i={i} />
+              ))
+            )}
+          </motion.section>
+        )}
+
+        {tab === "Espera" && (
           <motion.section
             key="waitlist"
             initial={{ opacity: 0, y: 8 }}
@@ -858,5 +940,75 @@ function RescheduleModal({
         </button>
       </div>
     </ModalShell>
+  );
+}
+
+function ExperienceBookingCard({ booking, i }: { booking: any; i: number }) {
+  const exp = booking.experiences as any;
+  const restaurant = exp?.restaurants as any;
+  const img = TYPE_IMAGES[exp?.type] ?? restaurant?.image_url;
+  const accent = TYPE_ACCENT[exp?.type] ?? "#D4A853";
+  const label = TYPE_LABELS[exp?.type] ?? exp?.type ?? "Experiência";
+  const total = (booking.party_size ?? 1) * Number(exp?.price_per_person ?? 0);
+
+  return (
+    <motion.article
+      custom={i}
+      variants={itemAnim}
+      initial="hidden"
+      animate="show"
+      className="overflow-hidden rounded-2xl border border-gold/20 bg-card shadow-lg shadow-black/10"
+    >
+      {/* Image */}
+      <div className="relative h-36 overflow-hidden">
+        {img && (
+          <img src={img} alt={exp?.title} className="h-full w-full object-cover" loading="lazy" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+
+        <span
+          className="absolute top-3 left-3 rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-wide backdrop-blur-sm border"
+          style={{ background: `${accent}22`, borderColor: `${accent}55`, color: accent }}
+        >
+          {label}
+        </span>
+
+        <span className="absolute top-3 right-3 rounded-full px-2.5 py-1 text-[10px] font-semibold text-white/80 bg-black/40 border border-white/10 backdrop-blur-sm">
+          #{booking.confirmation_code}
+        </span>
+
+        <div className="absolute bottom-3 left-4 right-4">
+          <p className="font-display text-white text-lg leading-tight">{exp?.title}</p>
+          <p className="text-[11px] text-white/55 mt-0.5">{restaurant?.name}</p>
+        </div>
+      </div>
+
+      {/* Info row */}
+      <div className="grid grid-cols-3 divide-x divide-border/60 px-1 py-3 text-center">
+        <Stat
+          icon={<Calendar size={13} />}
+          label={
+            exp?.event_date
+              ? new Date(exp.event_date + "T12:00:00").toLocaleDateString("pt-BR", {
+                  day: "numeric",
+                  month: "short",
+                })
+              : "—"
+          }
+        />
+        <Stat icon={<Clock size={13} />} label={exp?.event_time ?? "—"} />
+        <Stat icon={<Users size={13} />} label={`${booking.party_size ?? 1} pessoa${booking.party_size !== 1 ? "s" : ""}`} />
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between border-t border-border/60 px-4 py-3">
+        <span className="text-xs text-muted-foreground">
+          Total estimado
+        </span>
+        <span className="font-display text-base" style={{ color: accent }}>
+          R$ {total.toFixed(0)}
+        </span>
+      </div>
+    </motion.article>
   );
 }
