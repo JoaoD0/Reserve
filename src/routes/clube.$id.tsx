@@ -82,6 +82,15 @@ function ClubeExperiencia() {
       if (!user) throw new Error("Faça login para continuar.");
       if (partySize > (exp?.available_spots ?? 0)) throw new Error("Vagas insuficientes.");
 
+      // Check for duplicate booking
+      const { data: existing } = await supabase!
+        .from("experience_bookings")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("experience_id", id)
+        .maybeSingle();
+      if (existing) throw new Error("Você já tem uma reserva para esta experiência.");
+
       const code = Math.random().toString(36).slice(2, 8).toUpperCase();
 
       const { error: bookErr } = await supabase!
@@ -89,10 +98,8 @@ function ClubeExperiencia() {
         .insert({ user_id: user.id, experience_id: id, party_size: partySize, confirmation_code: code });
       if (bookErr) throw bookErr;
 
-      await supabase!
-        .from("experiences")
-        .update({ available_spots: (exp?.available_spots ?? 0) - partySize })
-        .eq("id", id);
+      // Decrement using DB-side expression to avoid stale-read race condition
+      await supabase!.rpc("decrement_experience_spots", { exp_id: id, qty: partySize });
 
       return code;
     },

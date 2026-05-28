@@ -145,10 +145,12 @@ function Reservas() {
     queryKey: ["userReservations", user?.id],
     queryFn: async () => {
       if (!supabase || !user) return [];
+      const today = new Date().toISOString().slice(0, 10);
       const { data, error } = await supabase
         .from("reservations")
         .select(`*, restaurants(name, image_url, address, cuisine, rating)`)
         .in("status", ["confirmed", "pending"])
+        .gte("reservation_date", today)
         .order("reservation_date", { ascending: true });
       if (error) throw error;
       return (data ?? []).map((r: any): Reservation => ({
@@ -927,12 +929,14 @@ function PastReservationCard({ r, i }: { r: any; i: number }) {
         <div className="flex-1 min-w-0">
           <p className="font-display text-base truncate">{restaurant?.name ?? "Restaurante"}</p>
           <p className="text-[11px] text-muted-foreground mt-0.5">
-            {new Date(r.reservation_date + "T12:00:00").toLocaleDateString("pt-BR", {
-              weekday: "short",
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}{" · "}{r.time_slot}{" · "}{r.party_size} pessoa{r.party_size !== 1 ? "s" : ""}
+            {r.reservation_date
+              ? new Date(r.reservation_date + "T12:00:00").toLocaleDateString("pt-BR", {
+                  weekday: "short",
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })
+              : "—"}{" · "}{r.time_slot ?? "—"}{" · "}{r.party_size ?? 1} pessoa{(r.party_size ?? 1) !== 1 ? "s" : ""}
           </p>
         </div>
         <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-semibold ${STATUS_STYLE[r.status] ?? STATUS_STYLE.completed}`}>

@@ -70,6 +70,7 @@ function OwnerExperiencias() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
+      await supabase!.from("experience_bookings").delete().eq("experience_id", id);
       const { error } = await supabase!.from("experiences").delete().eq("id", id);
       if (error) throw error;
     },
