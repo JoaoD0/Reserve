@@ -42,6 +42,8 @@ function OwnerReservas() {
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase!.from("reservations").update({ status }).eq("id", id);
       if (error) throw error;
+      // Fire-and-forget email notification
+      supabase!.functions.invoke("notify-reservation", { body: { reservationId: id, status } }).catch(() => {});
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["owner"] });
@@ -90,7 +92,7 @@ function OwnerReservas() {
                       </span>
                       <span className="text-xs text-muted-foreground">#{r.confirmation_code}</span>
                     </div>
-                    <p className="font-medium text-sm">{r.profiles?.full_name ?? "Cliente"}</p>
+                    <p className="font-medium text-sm">{(r.profiles as any)?.full_name ?? "Cliente"}</p>
                     {r.contact_phone && (
                       <a href={`tel:${r.contact_phone}`} className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5 hover:text-primary transition-colors">
                         <Phone size={11} /> {r.contact_phone}

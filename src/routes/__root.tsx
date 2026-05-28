@@ -4,10 +4,13 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { Toaster } from "sonner";
+import { BrenoChatFloating } from "@/components/BrenoChat";
 
 import appCss from "../styles.css?url";
 
@@ -109,6 +112,28 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+
+function BrenoGlobal() {
+  const [globalEnabled, setGlobalEnabled] = useState(() =>
+    typeof localStorage !== "undefined" && localStorage.getItem("breno_global") === "true"
+  );
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => {
+    const handler = () => setGlobalEnabled(localStorage.getItem("breno_global") === "true");
+    window.addEventListener("breno-toggle", handler);
+    return () => window.removeEventListener("breno-toggle", handler);
+  }, []);
+
+  const isRestricted = pathname.startsWith("/owner") || pathname.startsWith("/admin");
+  const isPerfilRoute = pathname.startsWith("/perfil");
+
+  if (isRestricted) return null;
+  if (!isPerfilRoute && !globalEnabled) return null;
+
+  return <BrenoChatFloating />;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -116,6 +141,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <Outlet />
       <Toaster position="top-center" theme="dark" richColors />
+      <BrenoGlobal />
     </QueryClientProvider>
   );
 }

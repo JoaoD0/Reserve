@@ -88,7 +88,7 @@ function OwnerDashboard() {
             ) : (
               recent.map((r: any) => (
                 <tr key={r.id} className="border-b border-border/40 last:border-0 hover:bg-surface/40 transition-colors">
-                  <td className="px-6 py-3.5 font-medium">{r.profiles?.full_name ?? "Cliente"}</td>
+                  <td className="px-6 py-3.5 font-medium">{(r.profiles as any)?.full_name ?? r.contact_phone ?? "Cliente"}</td>
                   <td className="px-6 py-3.5">{new Date(r.reservation_date + "T12:00:00").toLocaleDateString("pt-BR")}</td>
                   <td className="px-6 py-3.5 text-muted-foreground">{r.time_slot}</td>
                   <td className="px-6 py-3.5 text-muted-foreground">{r.party_size}</td>

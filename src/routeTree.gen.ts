@@ -14,17 +14,20 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReservasRouteImport } from './routes/reservas'
 import { Route as RecompensasRouteImport } from './routes/recompensas'
 import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as OwnerRouteImport } from './routes/owner'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OwnerIndexRouteImport } from './routes/owner.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as RestauranteIdRouteImport } from './routes/restaurante.$id'
 import { Route as PerfilNotificacoesRouteImport } from './routes/perfil.notificacoes'
 import { Route as PerfilFavoritosRouteImport } from './routes/perfil.favoritos'
 import { Route as PerfilDadosRouteImport } from './routes/perfil.dados'
 import { Route as PerfilAjudaRouteImport } from './routes/perfil.ajuda'
+import { Route as OwnerReservasRouteImport } from './routes/owner.reservas'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AdminRestaurantesRouteImport } from './routes/admin.restaurantes'
 import { Route as AdminReservasRouteImport } from './routes/admin.reservas'
@@ -55,6 +58,11 @@ const PerfilRoute = PerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OwnerRoute = OwnerRouteImport.update({
+  id: '/owner',
+  path: '/owner',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -79,6 +87,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const OwnerIndexRoute = OwnerIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => OwnerRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
@@ -110,6 +123,11 @@ const PerfilAjudaRoute = PerfilAjudaRouteImport.update({
   path: '/ajuda',
   getParentRoute: () => PerfilRoute,
 } as any)
+const OwnerReservasRoute = OwnerReservasRouteImport.update({
+  id: '/reservas',
+  path: '/reservas',
+  getParentRoute: () => OwnerRoute,
+} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
@@ -137,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/owner': typeof OwnerRouteWithChildren
   '/perfil': typeof PerfilRouteWithChildren
   '/recompensas': typeof RecompensasRoute
   '/reservas': typeof ReservasRoute
@@ -146,12 +165,14 @@ export interface FileRoutesByFullPath {
   '/admin/reservas': typeof AdminReservasRoute
   '/admin/restaurantes': typeof AdminRestaurantesRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/owner/reservas': typeof OwnerReservasRoute
   '/perfil/ajuda': typeof PerfilAjudaRoute
   '/perfil/dados': typeof PerfilDadosRoute
   '/perfil/favoritos': typeof PerfilFavoritosRoute
   '/perfil/notificacoes': typeof PerfilNotificacoesRoute
   '/restaurante/$id': typeof RestauranteIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/owner/': typeof OwnerIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -167,12 +188,14 @@ export interface FileRoutesByTo {
   '/admin/reservas': typeof AdminReservasRoute
   '/admin/restaurantes': typeof AdminRestaurantesRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/owner/reservas': typeof OwnerReservasRoute
   '/perfil/ajuda': typeof PerfilAjudaRoute
   '/perfil/dados': typeof PerfilDadosRoute
   '/perfil/favoritos': typeof PerfilFavoritosRoute
   '/perfil/notificacoes': typeof PerfilNotificacoesRoute
   '/restaurante/$id': typeof RestauranteIdRoute
   '/admin': typeof AdminIndexRoute
+  '/owner': typeof OwnerIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -181,6 +204,7 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/owner': typeof OwnerRouteWithChildren
   '/perfil': typeof PerfilRouteWithChildren
   '/recompensas': typeof RecompensasRoute
   '/reservas': typeof ReservasRoute
@@ -190,12 +214,14 @@ export interface FileRoutesById {
   '/admin/reservas': typeof AdminReservasRoute
   '/admin/restaurantes': typeof AdminRestaurantesRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/owner/reservas': typeof OwnerReservasRoute
   '/perfil/ajuda': typeof PerfilAjudaRoute
   '/perfil/dados': typeof PerfilDadosRoute
   '/perfil/favoritos': typeof PerfilFavoritosRoute
   '/perfil/notificacoes': typeof PerfilNotificacoesRoute
   '/restaurante/$id': typeof RestauranteIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/owner/': typeof OwnerIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -205,6 +231,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/onboarding'
+    | '/owner'
     | '/perfil'
     | '/recompensas'
     | '/reservas'
@@ -214,12 +241,14 @@ export interface FileRouteTypes {
     | '/admin/reservas'
     | '/admin/restaurantes'
     | '/auth/callback'
+    | '/owner/reservas'
     | '/perfil/ajuda'
     | '/perfil/dados'
     | '/perfil/favoritos'
     | '/perfil/notificacoes'
     | '/restaurante/$id'
     | '/admin/'
+    | '/owner/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -235,12 +264,14 @@ export interface FileRouteTypes {
     | '/admin/reservas'
     | '/admin/restaurantes'
     | '/auth/callback'
+    | '/owner/reservas'
     | '/perfil/ajuda'
     | '/perfil/dados'
     | '/perfil/favoritos'
     | '/perfil/notificacoes'
     | '/restaurante/$id'
     | '/admin'
+    | '/owner'
   id:
     | '__root__'
     | '/'
@@ -248,6 +279,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/onboarding'
+    | '/owner'
     | '/perfil'
     | '/recompensas'
     | '/reservas'
@@ -257,12 +289,14 @@ export interface FileRouteTypes {
     | '/admin/reservas'
     | '/admin/restaurantes'
     | '/auth/callback'
+    | '/owner/reservas'
     | '/perfil/ajuda'
     | '/perfil/dados'
     | '/perfil/favoritos'
     | '/perfil/notificacoes'
     | '/restaurante/$id'
     | '/admin/'
+    | '/owner/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -271,6 +305,7 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
+  OwnerRoute: typeof OwnerRouteWithChildren
   PerfilRoute: typeof PerfilRouteWithChildren
   RecompensasRoute: typeof RecompensasRoute
   ReservasRoute: typeof ReservasRoute
@@ -317,6 +352,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/owner': {
+      id: '/owner'
+      path: '/owner'
+      fullPath: '/owner'
+      preLoaderRoute: typeof OwnerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/onboarding': {
       id: '/onboarding'
       path: '/onboarding'
@@ -351,6 +393,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/owner/': {
+      id: '/owner/'
+      path: '/'
+      fullPath: '/owner/'
+      preLoaderRoute: typeof OwnerIndexRouteImport
+      parentRoute: typeof OwnerRoute
     }
     '/admin/': {
       id: '/admin/'
@@ -393,6 +442,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/perfil/ajuda'
       preLoaderRoute: typeof PerfilAjudaRouteImport
       parentRoute: typeof PerfilRoute
+    }
+    '/owner/reservas': {
+      id: '/owner/reservas'
+      path: '/reservas'
+      fullPath: '/owner/reservas'
+      preLoaderRoute: typeof OwnerReservasRouteImport
+      parentRoute: typeof OwnerRoute
     }
     '/auth/callback': {
       id: '/auth/callback'
@@ -441,6 +497,18 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface OwnerRouteChildren {
+  OwnerReservasRoute: typeof OwnerReservasRoute
+  OwnerIndexRoute: typeof OwnerIndexRoute
+}
+
+const OwnerRouteChildren: OwnerRouteChildren = {
+  OwnerReservasRoute: OwnerReservasRoute,
+  OwnerIndexRoute: OwnerIndexRoute,
+}
+
+const OwnerRouteWithChildren = OwnerRoute._addFileChildren(OwnerRouteChildren)
+
 interface PerfilRouteChildren {
   PerfilAjudaRoute: typeof PerfilAjudaRoute
   PerfilDadosRoute: typeof PerfilDadosRoute
@@ -464,6 +532,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
+  OwnerRoute: OwnerRouteWithChildren,
   PerfilRoute: PerfilRouteWithChildren,
   RecompensasRoute: RecompensasRoute,
   ReservasRoute: ReservasRoute,

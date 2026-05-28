@@ -121,6 +121,16 @@ function AccordionItem({ q, a }: { q: string; a: string }) {
 function PerfilAjuda() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [brenoGlobal, setBrenoGlobal] = useState(() =>
+    typeof localStorage !== "undefined" && localStorage.getItem("breno_global") === "true"
+  );
+
+  function toggleBreno() {
+    const next = !brenoGlobal;
+    setBrenoGlobal(next);
+    localStorage.setItem("breno_global", String(next));
+    window.dispatchEvent(new Event("breno-toggle"));
+  }
 
   const filtered = FAQ.map((section) => ({
     ...section,
@@ -177,6 +187,20 @@ function PerfilAjuda() {
             ))}
           </div>
         )}
+
+        {/* Toggle Breno global */}
+        <div className="flex items-center justify-between rounded-2xl border border-border/60 bg-card px-5 py-4">
+          <div>
+            <p className="text-sm font-medium">Breno em todo o app</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Botão flutuante disponível em todas as telas</p>
+          </div>
+          <button
+            onClick={toggleBreno}
+            className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${brenoGlobal ? "bg-primary" : "bg-muted"}`}
+          >
+            <span className={`absolute top-0.5 left-0.5 block h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${brenoGlobal ? "translate-x-5" : "translate-x-0"}`} />
+          </button>
+        </div>
 
         {/* Contact */}
         <div className="overflow-hidden rounded-2xl border border-border/60 bg-card p-5">
