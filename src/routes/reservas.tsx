@@ -34,6 +34,8 @@ export const Route = createFileRoute("/reservas")({
 type Dish = { name: string; price: string; description?: string };
 
 type Reservation = {
+  id?: string;
+  reservationDate?: string; // ISO format yyyy-mm-dd, used for DB updates
   name: string;
   img: string;
   date: string;
@@ -154,6 +156,8 @@ function Reservas() {
         .order("reservation_date", { ascending: true });
       if (error) throw error;
       return (data ?? []).map((r: any): Reservation => ({
+        id: r.id,
+        reservationDate: r.reservation_date,
         name: r.restaurants?.name ?? "Restaurante",
         img: r.restaurants?.image_url ?? sushiImg,
         date: new Date(r.reservation_date + "T12:00:00").toLocaleDateString("pt-BR", {
@@ -225,9 +229,15 @@ function Reservas() {
   const toggleFav = (name: string) =>
     setFavorites((f) => ({ ...f, [name]: !f[name] }));
 
-  const reschedule = (name: string, date: string, time: string) => {
+  const reschedule = async (r: Reservation, isoDate: string, time: string) => {
+    if (r.id && supabase) {
+      await supabase
+        .from("reservations")
+        .update({ reservation_date: isoDate, time_slot: time })
+        .eq("id", r.id);
+    }
     setReservations((rs) =>
-      rs.map((r) => (r.name === name ? { ...r, date, time } : r))
+      rs.map((x) => (x.name === r.name ? { ...x, reservationDate: isoDate, time } : x))
     );
     setModal(null);
   };
@@ -439,7 +449,7 @@ function Reservas() {
           <RescheduleModal
             r={modal.r}
             onClose={() => setModal(null)}
-            onConfirm={(d, t) => reschedule(modal.r.name, d, t)}
+            onConfirm={(isoDate, t) => reschedule(modal.r, isoDate, t)}
           />
         )}
       </AnimatePresence>
@@ -772,15 +782,15 @@ function InfoLine({ icon, label }: { icon: React.ReactNode; label: string }) {
   );
 }
 
-const RESCHEDULE_DAYS = [
-  { date: "Sex, 16 Mai", short: "16", weekday: "Sex" },
-  { date: "Sáb, 17 Mai", short: "17", weekday: "Sáb" },
-  { date: "Dom, 18 Mai", short: "18", weekday: "Dom" },
-  { date: "Seg, 19 Mai", short: "19", weekday: "Seg" },
-  { date: "Ter, 20 Mai", short: "20", weekday: "Ter" },
-  { date: "Qua, 21 Mai", short: "21", weekday: "Qua" },
-  { date: "Qui, 22 Mai", short: "22", weekday: "Qui" },
-];
+const RESCHEDULE_DAYS = Array.from({ length: 14 }, (_, i) => {
+  const d = new Date();
+  d.setDate(d.getDate() + i + 1);
+  return {
+    iso: d.toISOString().slice(0, 10),
+    short: String(d.getDate()).padStart(2, "0"),
+    weekday: d.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", ""),
+  };
+});
 
 const TIMES = ["19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00"];
 
@@ -793,7 +803,7 @@ function RescheduleModal({
   onClose: () => void;
   onConfirm: (date: string, time: string) => void;
 }) {
-  const [date, setDate] = useState(r.date);
+  const [isoDate, setIsoDate] = useState(r.reservationDate ?? RESCHEDULE_DAYS[0].iso);
   const [time, setTime] = useState(r.time);
 
   return (
@@ -825,11 +835,11 @@ function RescheduleModal({
         </p>
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
           {RESCHEDULE_DAYS.map((d) => {
-            const active = date === d.date;
+            const active = isoDate === d.iso;
             return (
               <button
-                key={d.date}
-                onClick={() => setDate(d.date)}
+                key={d.iso}
+                onClick={() => setIsoDate(d.iso)}
                 className={`relative flex w-[60px] shrink-0 flex-col items-center rounded-2xl border px-2 py-3 transition-colors ${
                   active
                     ? "border-primary/50 bg-primary/15 text-primary"
@@ -875,7 +885,9 @@ function RescheduleModal({
         <div className="mt-6 rounded-2xl border border-border/60 bg-card p-4">
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Resumo</p>
           <div className="mt-2 flex items-center justify-between">
-            <span className="text-sm">{date}</span>
+            <span className="text-sm">
+              {new Date(isoDate + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "short", day: "numeric", month: "short" })}
+            </span>
             <span className="font-display text-base text-gold">{time}</span>
           </div>
           <p className="mt-1 text-[11px] text-muted-foreground">
@@ -884,7 +896,7 @@ function RescheduleModal({
         </div>
 
         <button
-          onClick={() => onConfirm(date, time)}
+          onClick={() => onConfirm(isoDate, time)}
           className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground"
         >
           Confirmar nova data <ChevronRight size={15} />

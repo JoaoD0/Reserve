@@ -20,11 +20,13 @@ import {
   Heart,
 } from "lucide-react";
 import { MobileShell } from "@/components/MobileShell";
+import { useQuery } from "@tanstack/react-query";
 import { useRestaurant } from "@/lib/hooks/useRestaurant";
 import { useMenuItems } from "@/lib/hooks/useMenuItems";
 import { useCreateReservation } from "@/lib/hooks/useReservation";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useFavorites } from "@/lib/hooks/useFavorites";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/restaurante/$id")({
@@ -157,7 +159,22 @@ function RestaurantPage() {
   const timeSlots = restaurant
     ? generateTimeSlots(restaurant.opening_time, restaurant.closing_time)
     : [];
-  const bookedSlots = restaurant?.bookedSlots ?? [];
+
+  // Real booked slots for selected date
+  const { data: bookedSlots = [] } = useQuery({
+    queryKey: ["bookedSlots", id, selectedDate],
+    queryFn: async () => {
+      if (!supabase || !selectedDate) return [];
+      const { data } = await supabase
+        .from("reservations")
+        .select("time_slot")
+        .eq("restaurant_id", id)
+        .eq("reservation_date", selectedDate)
+        .in("status", ["confirmed", "pending"]);
+      return (data ?? []).map((r: any) => r.time_slot as string);
+    },
+    enabled: !!selectedDate,
+  });
 
   useEffect(() => {
     const handleScroll = () => setShowStickyHeader(window.scrollY > 260);
