@@ -239,21 +239,29 @@ function RestaurantPage() {
     ? generateTimeSlots(restaurant.opening_time, restaurant.closing_time)
     : [];
 
-  // Real booked slots for selected date
-  const { data: bookedSlots = [] } = useQuery({
+  // Real booked slots for selected date, separated by status
+  const { data: slotStatus = { confirmed: new Set<string>(), pending: new Set<string>() } } = useQuery({
     queryKey: ["bookedSlots", id, selectedDate],
     queryFn: async () => {
-      if (!supabase || !selectedDate) return [];
+      if (!supabase || !selectedDate) return { confirmed: new Set<string>(), pending: new Set<string>() };
       const { data } = await supabase
         .from("reservations")
-        .select("time_slot")
+        .select("time_slot, status")
         .eq("restaurant_id", id)
         .eq("reservation_date", selectedDate)
         .in("status", ["confirmed", "pending"]);
-      return (data ?? []).map((r: any) => r.time_slot as string);
+      const confirmed = new Set<string>();
+      const pending = new Set<string>();
+      for (const r of data ?? []) {
+        if (r.status === "confirmed") confirmed.add(r.time_slot);
+        else pending.add(r.time_slot);
+      }
+      return { confirmed, pending };
     },
     enabled: !!selectedDate,
   });
+
+  const [pendingWarningSlot, setPendingWarningSlot] = useState<string | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setShowStickyHeader(window.scrollY > 260);
@@ -626,33 +634,60 @@ function RestaurantPage() {
                   </p>
                   <div className="mt-3 grid grid-cols-3 gap-2">
                     {timeSlots.map((slot) => {
-                      const booked = bookedSlots.includes(slot);
+                      const confirmed = slotStatus.confirmed.has(slot);
+                      const pending = !confirmed && slotStatus.pending.has(slot);
                       const active = selectedSlot === slot;
                       return (
                         <button
                           key={slot}
+                          disabled={confirmed}
                           onClick={() => {
-                            if (booked) { setBookedModal(true); return; }
+                            if (pending) { setPendingWarningSlot(slot); return; }
                             setSelectedSlot(slot);
                           }}
                           className={`relative rounded-xl border py-2.5 text-xs transition-colors ${
-                            booked
-                              ? "border-border/40 bg-surface/40 text-muted-foreground/40 line-through"
+                            confirmed
+                              ? "border-border/40 bg-surface/40 text-muted-foreground/30 line-through cursor-not-allowed"
+                              : pending
+                              ? "border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium"
                               : active
                               ? "border-primary/50 bg-primary/20 font-semibold text-primary"
                               : "border-primary/30 bg-surface/60 text-primary"
                           }`}
                         >
                           {slot}
-                          {booked && (
-                            <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 rounded-full bg-surface px-1.5 text-[8px] text-muted-foreground/60">
-                              Esgotado
+                          {confirmed && (
+                            <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 rounded-full bg-surface px-1.5 text-[8px] text-muted-foreground/50">
+                              Ocupado
+                            </span>
+                          )}
+                          {pending && (
+                            <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 rounded-full bg-surface px-1.5 text-[8px] text-amber-400">
+                              Disputa
                             </span>
                           )}
                         </button>
                       );
                     })}
                   </div>
+
+                  {/* Legend */}
+                  {(slotStatus.confirmed.size > 0 || slotStatus.pending.size > 0) && (
+                    <div className="mt-3 flex items-center gap-4 px-1">
+                      {slotStatus.confirmed.size > 0 && (
+                        <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                          <span className="h-2 w-2 rounded-full bg-muted-foreground/30" />
+                          Ocupado
+                        </span>
+                      )}
+                      {slotStatus.pending.size > 0 && (
+                        <span className="flex items-center gap-1.5 text-[10px] text-amber-400">
+                          <span className="h-2 w-2 rounded-full bg-amber-400/60" />
+                          Em disputa
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   <button
                     disabled={!selectedSlot}
@@ -806,6 +841,54 @@ function RestaurantPage() {
               >
                 Escolher outro horário
               </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Pending slot warning — can book but enters queue */}
+      <AnimatePresence>
+        {pendingWarningSlot && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] flex items-end justify-center bg-background/70 backdrop-blur-sm"
+            onClick={() => setPendingWarningSlot(null)}
+          >
+            <motion.div
+              initial={{ y: 60, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 60, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 360, damping: 34 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-[480px] rounded-t-3xl border border-amber-500/20 bg-surface-elevated px-5 py-6"
+            >
+              <div className="flex justify-center pb-4">
+                <div className="h-1 w-10 rounded-full bg-border/60" />
+              </div>
+              <p className="text-center text-3xl">⚠️</p>
+              <h3 className="font-display mt-3 text-center text-lg">Horário em disputa</h3>
+              <p className="mt-2 text-center text-[12px] leading-relaxed text-muted-foreground">
+                Este horário já tem outra solicitação pendente. Você pode tentar reservar, mas ficará aguardando a decisão do restaurante — que escolherá entre as solicitações recebidas.
+              </p>
+              <div className="mt-5 flex gap-2">
+                <button
+                  onClick={() => setPendingWarningSlot(null)}
+                  className="flex-1 rounded-xl border border-border/60 py-3 text-sm text-muted-foreground"
+                >
+                  Escolher outro
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedSlot(pendingWarningSlot);
+                    setPendingWarningSlot(null);
+                  }}
+                  className="flex-[2] rounded-xl bg-amber-500 py-3 text-sm font-semibold text-black"
+                >
+                  Tentar mesmo assim
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
