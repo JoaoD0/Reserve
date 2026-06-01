@@ -18,6 +18,10 @@ const FAQ = [
         a: "Acesse a página do restaurante, escolha data, horário e número de pessoas, preencha seu telefone e confirme. Você receberá um código de confirmação.",
       },
       {
+        q: "Com quanto tempo de antecedência posso reservar?",
+        a: "Você pode agendar com até 2 meses de antecedência. Datas além desse prazo não ficam disponíveis no calendário.",
+      },
+      {
         q: "Posso cancelar minha reserva?",
         a: "Sim. Entre em 'Minhas reservas', encontre a reserva desejada e toque em 'Cancelar'. O cancelamento deve ser feito com pelo menos 2 horas de antecedência.",
       },

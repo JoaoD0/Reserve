@@ -572,6 +572,9 @@ function RestaurantPage() {
                     Escolha uma data
                   </p>
                   <MiniCalendar selectedDate={selectedDate} onSelect={setSelectedDate} />
+                  <p className="mt-2 text-center text-[11px] text-muted-foreground">
+                    Reservas disponíveis com até <span className="text-foreground/70 font-medium">2 meses</span> de antecedência.
+                  </p>
 
                   <p className="mt-6 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
                     Quantas pessoas?
