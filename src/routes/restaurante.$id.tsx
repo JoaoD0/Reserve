@@ -36,9 +36,12 @@ export const Route = createFileRoute("/restaurante/$id")({
 /* ─── helpers ─────────────────────────────────────────────────── */
 
 function getNext7Days() {
-  return Array.from({ length: 7 }, (_, i) => {
+  const maxDate = new Date();
+  maxDate.setMonth(maxDate.getMonth() + 2);
+  return Array.from({ length: 60 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() + i);
+    if (d > maxDate) return null;
     const weekday = d
       .toLocaleDateString("pt-BR", { weekday: "short" })
       .slice(0, 3)
@@ -47,7 +50,7 @@ function getNext7Days() {
     const day = String(d.getDate()).padStart(2, "0");
     const month = String(d.getMonth() + 1).padStart(2, "0");
     return { weekday, day, label: `${day}/${month}`, iso: d.toISOString().split("T")[0] };
-  });
+  }).filter(Boolean) as { weekday: string; day: string; label: string; iso: string }[];
 }
 
 function generateTimeSlots(opening: string, closing: string) {

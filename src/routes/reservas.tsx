@@ -782,15 +782,20 @@ function InfoLine({ icon, label }: { icon: React.ReactNode; label: string }) {
   );
 }
 
-const RESCHEDULE_DAYS = Array.from({ length: 14 }, (_, i) => {
-  const d = new Date();
-  d.setDate(d.getDate() + i + 1);
-  return {
-    iso: d.toISOString().slice(0, 10),
-    short: String(d.getDate()).padStart(2, "0"),
-    weekday: d.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", ""),
-  };
-});
+const RESCHEDULE_DAYS = (() => {
+  const maxDate = new Date();
+  maxDate.setMonth(maxDate.getMonth() + 2);
+  return Array.from({ length: 60 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i + 1);
+    if (d > maxDate) return null;
+    return {
+      iso: d.toISOString().slice(0, 10),
+      short: String(d.getDate()).padStart(2, "0"),
+      weekday: d.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", ""),
+    };
+  }).filter(Boolean) as { iso: string; short: string; weekday: string }[];
+})();
 
 const TIMES = ["19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00"];
 
