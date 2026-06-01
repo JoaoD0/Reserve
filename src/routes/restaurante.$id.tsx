@@ -35,22 +35,99 @@ export const Route = createFileRoute("/restaurante/$id")({
 
 /* ─── helpers ─────────────────────────────────────────────────── */
 
-function getNext7Days() {
+const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+function MiniCalendar({
+  selectedDate,
+  onSelect,
+}: {
+  selectedDate: string;
+  onSelect: (iso: string) => void;
+}) {
+  const todayDate = new Date();
+  const todayIso = todayDate.toISOString().slice(0, 10);
   const maxDate = new Date();
   maxDate.setMonth(maxDate.getMonth() + 2);
-  return Array.from({ length: 60 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() + i);
-    if (d > maxDate) return null;
-    const weekday = d
-      .toLocaleDateString("pt-BR", { weekday: "short" })
-      .slice(0, 3)
-      .toUpperCase()
-      .replace(".", "");
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    return { weekday, day, label: `${day}/${month}`, iso: d.toISOString().split("T")[0] };
-  }).filter(Boolean) as { weekday: string; day: string; label: string; iso: string }[];
+
+  const [viewYear, setViewYear] = useState(todayDate.getFullYear());
+  const [viewMonth, setViewMonth] = useState(todayDate.getMonth());
+
+  const firstDayOfWeek = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const monthLabel = new Date(viewYear, viewMonth, 1)
+    .toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+
+  const prevMonth = () => {
+    if (viewMonth === 0) { setViewYear(y => y - 1); setViewMonth(11); }
+    else setViewMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (viewMonth === 11) { setViewYear(y => y + 1); setViewMonth(0); }
+    else setViewMonth(m => m + 1);
+  };
+
+  const canPrev = viewYear > todayDate.getFullYear() || viewMonth > todayDate.getMonth();
+  const canNext = new Date(viewYear, viewMonth + 1, 1) <= maxDate;
+
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card p-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={prevMonth}
+          disabled={!canPrev}
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-border/60 disabled:opacity-25 transition-opacity"
+        >
+          <ChevronLeft size={14} />
+        </button>
+        <p className="text-sm font-medium capitalize">{monthLabel}</p>
+        <button
+          onClick={nextMonth}
+          disabled={!canNext}
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-border/60 disabled:opacity-25 transition-opacity"
+        >
+          <ChevronRight size={14} />
+        </button>
+      </div>
+
+      {/* Weekday headers */}
+      <div className="grid grid-cols-7 mb-1">
+        {WEEKDAYS.map(w => (
+          <p key={w} className="text-center text-[9px] uppercase tracking-wider text-muted-foreground py-1">{w}</p>
+        ))}
+      </div>
+
+      {/* Day grid */}
+      <div className="grid grid-cols-7 gap-y-0.5">
+        {Array.from({ length: firstDayOfWeek }).map((_, i) => <div key={`e${i}`} />)}
+        {Array.from({ length: daysInMonth }).map((_, i) => {
+          const day = i + 1;
+          const iso = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+          const isPast = iso < todayIso;
+          const isBeyond = new Date(viewYear, viewMonth, day) > maxDate;
+          const disabled = isPast || isBeyond;
+          const selected = iso === selectedDate;
+          const isToday = iso === todayIso;
+
+          return (
+            <button
+              key={iso}
+              disabled={disabled}
+              onClick={() => onSelect(iso)}
+              className={`
+                h-9 rounded-xl text-sm font-medium transition-colors
+                ${selected ? "bg-primary text-primary-foreground" : ""}
+                ${isToday && !selected ? "border border-primary/50 text-primary" : ""}
+                ${disabled ? "text-muted-foreground/25 cursor-not-allowed" : !selected ? "hover:bg-surface" : ""}
+              `}
+            >
+              {day}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 function generateTimeSlots(opening: string, closing: string) {
@@ -158,7 +235,6 @@ function RestaurantPage() {
   const [bookedModal, setBookedModal] = useState(false);
   const [successCode, setSuccessCode] = useState<string | null>(null);
 
-  const days = getNext7Days();
   const timeSlots = restaurant
     ? generateTimeSlots(restaurant.opening_time, restaurant.closing_time)
     : [];
@@ -492,28 +568,10 @@ function RestaurantPage() {
                   transition={{ duration: 0.22 }}
                   className="px-5"
                 >
-                  <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground mb-3">
                     Escolha uma data
                   </p>
-                  <div className="mt-3 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-                    {days.map((d) => {
-                      const active = selectedDate === d.iso;
-                      return (
-                        <button
-                          key={d.iso}
-                          onClick={() => setSelectedDate(d.iso)}
-                          className={`relative flex w-[58px] shrink-0 flex-col items-center rounded-2xl border px-2 py-3 transition-colors ${
-                            active
-                              ? "border-primary/50 bg-primary/15 text-primary"
-                              : "border-border/60 bg-surface/60 text-muted-foreground"
-                          }`}
-                        >
-                          <span className="text-[9px] uppercase tracking-wider">{d.weekday}</span>
-                          <span className="font-display mt-0.5 text-xl">{d.day}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <MiniCalendar selectedDate={selectedDate} onSelect={setSelectedDate} />
 
                   <p className="mt-6 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
                     Quantas pessoas?
