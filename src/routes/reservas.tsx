@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Calendar,
@@ -782,7 +782,7 @@ function InfoLine({ icon, label }: { icon: React.ReactNode; label: string }) {
   );
 }
 
-const RESCHEDULE_DAYS = (() => {
+function buildRescheduleDays() {
   const maxDate = new Date();
   maxDate.setMonth(maxDate.getMonth() + 2);
   return Array.from({ length: 60 }, (_, i) => {
@@ -795,7 +795,7 @@ const RESCHEDULE_DAYS = (() => {
       weekday: d.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", ""),
     };
   }).filter(Boolean) as { iso: string; short: string; weekday: string }[];
-})();
+}
 
 const TIMES = ["19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00"];
 
@@ -808,7 +808,8 @@ function RescheduleModal({
   onClose: () => void;
   onConfirm: (date: string, time: string) => void;
 }) {
-  const [isoDate, setIsoDate] = useState(r.reservationDate ?? RESCHEDULE_DAYS[0].iso);
+  const days = useMemo(() => buildRescheduleDays(), []);
+  const [isoDate, setIsoDate] = useState(r.reservationDate ?? days[0]?.iso ?? "");
   const [time, setTime] = useState(r.time);
 
   return (
@@ -839,7 +840,7 @@ function RescheduleModal({
           Escolha uma data
         </p>
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-          {RESCHEDULE_DAYS.map((d) => {
+          {days.map((d) => {
             const active = isoDate === d.iso;
             return (
               <button
