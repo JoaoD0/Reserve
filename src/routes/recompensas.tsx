@@ -268,28 +268,54 @@ function Recompensas() {
           </div>
         </motion.div>
 
-        {/* Earn section */}
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { Icon: CalendarCheck, label: "Reserva", pts: "+150" },
-            { Icon: Star, label: "Avaliação", pts: "+50" },
-            { Icon: Users, label: "Indicação", pts: "+200" },
-          ].map(({ Icon, label, pts }, i) => (
-            <motion.div
-              key={label}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + i * 0.06 }}
-              className="flex flex-col items-center gap-1.5 rounded-2xl border border-border/60 bg-card py-3.5 px-2"
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10">
-                <Icon size={14} className="text-primary" />
-              </div>
-              <span className="text-[10px] text-muted-foreground text-center leading-tight">{label}</span>
-              <span className="text-xs font-semibold text-primary">{pts} pts</span>
-            </motion.div>
-          ))}
-        </div>
+        {/* Active coupons */}
+        {userRewards.length > 0 && (
+          <div>
+            <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Meus cupons</p>
+            <div className="flex flex-col gap-2">
+              {userRewards.map((ur) => {
+                const reward = REWARDS.find((r) => r.id === ur.reward_id);
+                if (!reward) return null;
+                const { Icon } = reward;
+                const expires = new Date(ur.expires_at).toLocaleDateString("pt-BR");
+                return (
+                  <motion.div
+                    key={ur.id}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card px-4 py-3.5"
+                  >
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${reward.iconBg}`}>
+                      <Icon size={18} className={reward.accent} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">{reward.name}</p>
+                      <p className="mt-0.5 font-mono text-xs tracking-wider text-primary">{ur.coupon_code}</p>
+                      <p className="mt-0.5 text-[10px] text-muted-foreground">Válido até {expires}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => setQrCoupon(ur.coupon_code)}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-surface transition-colors active:bg-surface-elevated"
+                      >
+                        <QrCode size={14} className="text-muted-foreground" />
+                      </button>
+                      <button
+                        onClick={() => copyCode(ur.coupon_code)}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-surface transition-colors active:bg-surface-elevated"
+                      >
+                        {copied === ur.coupon_code
+                          ? <Check size={14} className="text-emerald-400" />
+                          : <Copy size={14} className="text-muted-foreground" />
+                        }
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Rewards */}
         <div>
@@ -343,54 +369,28 @@ function Recompensas() {
           </div>
         </div>
 
-        {/* Active coupons */}
-        {userRewards.length > 0 && (
-          <div>
-            <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Meus cupons</p>
-            <div className="flex flex-col gap-2">
-              {userRewards.map((ur) => {
-                const reward = REWARDS.find((r) => r.id === ur.reward_id);
-                if (!reward) return null;
-                const { Icon } = reward;
-                const expires = new Date(ur.expires_at).toLocaleDateString("pt-BR");
-                return (
-                  <motion.div
-                    key={ur.id}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card px-4 py-3.5"
-                  >
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${reward.iconBg}`}>
-                      <Icon size={18} className={reward.accent} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{reward.name}</p>
-                      <p className="mt-0.5 font-mono text-xs tracking-wider text-primary">{ur.coupon_code}</p>
-                      <p className="mt-0.5 text-[10px] text-muted-foreground">Válido até {expires}</p>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => setQrCoupon(ur.coupon_code)}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-surface transition-colors active:bg-surface-elevated"
-                      >
-                        <QrCode size={14} className="text-muted-foreground" />
-                      </button>
-                      <button
-                        onClick={() => copyCode(ur.coupon_code)}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-surface transition-colors active:bg-surface-elevated"
-                      >
-                        {copied === ur.coupon_code
-                          ? <Check size={14} className="text-emerald-400" />
-                          : <Copy size={14} className="text-muted-foreground" />
-                        }
-                      </button>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        {/* Earn section */}
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { Icon: CalendarCheck, label: "Reserva", pts: "+150" },
+            { Icon: Star, label: "Avaliação", pts: "+50" },
+            { Icon: Users, label: "Indicação", pts: "+200" },
+          ].map(({ Icon, label, pts }, i) => (
+            <motion.div
+              key={label}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + i * 0.06 }}
+              className="flex flex-col items-center gap-1.5 rounded-2xl border border-border/60 bg-card py-3.5 px-2"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10">
+                <Icon size={14} className="text-primary" />
+              </div>
+              <span className="text-[10px] text-muted-foreground text-center leading-tight">{label}</span>
+              <span className="text-xs font-semibold text-primary">{pts} pts</span>
+            </motion.div>
+          ))}
+        </div>
 
       </div>
 
