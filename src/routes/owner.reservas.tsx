@@ -28,7 +28,7 @@ function OwnerReservas() {
     queryFn: async () => {
       let q = supabase!
         .from("reservations")
-        .select("*, profiles(full_name)")
+        .select("*, profiles!reservations_user_id_fkey(full_name)")
         .eq("restaurant_id", restaurantId!)
         .order("reservation_date", { ascending: true })
         .order("time_slot", { ascending: true });

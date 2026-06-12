@@ -35,7 +35,7 @@ function OwnerDashboard() {
     queryFn: async () => {
       const { data } = await supabase!
         .from("reservations")
-        .select("*, profiles(full_name)")
+        .select("*, profiles!reservations_user_id_fkey(full_name)")
         .eq("restaurant_id", restaurantId!)
         .eq("status", "pending")
         .order("reservation_date", { ascending: true })

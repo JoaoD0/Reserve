@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Calendar,
   Clock,
@@ -136,6 +137,7 @@ type Modal =
 
 function Reservas() {
   const { user, loading: authLoading, isConfigured } = useAuth();
+  const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("Próximas");
   const [modal, setModal] = useState<Modal>(null);
   const [favorites, setFavorites] = useState<Record<string, boolean>>({
@@ -228,6 +230,21 @@ function Reservas() {
 
   const toggleFav = (name: string) =>
     setFavorites((f) => ({ ...f, [name]: !f[name] }));
+
+  const cancelReservation = async (r: Reservation) => {
+    if (!r.id || !supabase) return;
+    await supabase.from("reservations").update({ status: "cancelled" }).eq("id", r.id);
+    qc.invalidateQueries({ queryKey: ["userReservations", user?.id] });
+    toast.success("Reserva cancelada.");
+  };
+
+  const confirmPresence = async (r: Reservation) => {
+    if (!r.id || !supabase) return;
+    await supabase.from("reservations").update({ status: "confirmed" }).eq("id", r.id);
+    qc.invalidateQueries({ queryKey: ["userReservations", user?.id] });
+    setModal(null);
+    toast.success("Presença confirmada!");
+  };
 
   const reschedule = async (r: Reservation, isoDate: string, time: string) => {
     if (r.id && supabase) {
@@ -369,6 +386,7 @@ function Reservas() {
                   onToggleFav={() => toggleFav(r.name)}
                   onDetails={() => setModal({ kind: "details", r })}
                   onReschedule={() => setModal({ kind: "reschedule", r })}
+                  onCancel={() => cancelReservation(r)}
                 />
               ))
             )}
@@ -443,7 +461,7 @@ function Reservas() {
 
       <AnimatePresence>
         {modal?.kind === "details" && (
-          <DetailsModal r={modal.r} onClose={() => setModal(null)} />
+          <DetailsModal r={modal.r} onClose={() => setModal(null)} onConfirmPresence={() => confirmPresence(modal.r)} />
         )}
         {modal?.kind === "reschedule" && (
           <RescheduleModal
@@ -464,6 +482,7 @@ function ReservationCard({
   onToggleFav,
   onDetails,
   onReschedule,
+  onCancel,
 }: {
   r: Reservation;
   i: number;
@@ -471,6 +490,7 @@ function ReservationCard({
   onToggleFav: () => void;
   onDetails: () => void;
   onReschedule: () => void;
+  onCancel: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -615,7 +635,7 @@ function ReservationCard({
                 <MenuItem
                   icon={<XCircle size={13} />}
                   label="Cancelar reserva"
-                  onClick={() => setMenu(false)}
+                  onClick={() => { setMenu(false); onCancel(); }}
                   destructive
                 />
               </motion.div>
@@ -690,7 +710,7 @@ function ModalShell({
   );
 }
 
-function DetailsModal({ r, onClose }: { r: Reservation; onClose: () => void }) {
+function DetailsModal({ r, onClose, onConfirmPresence }: { r: Reservation; onClose: () => void; onConfirmPresence: () => void }) {
   return (
     <ModalShell onClose={onClose}>
       <div className="relative h-[200px]">
@@ -762,9 +782,18 @@ function DetailsModal({ r, onClose }: { r: Reservation; onClose: () => void }) {
           >
             Fechar
           </button>
-          <button className="flex-[2] rounded-xl bg-primary py-3 text-xs font-semibold text-primary-foreground">
-            Confirmar presença
-          </button>
+          {r.status === "Aguardando" ? (
+            <button
+              onClick={onConfirmPresence}
+              className="flex-[2] rounded-xl bg-primary py-3 text-xs font-semibold text-primary-foreground"
+            >
+              Confirmar presença
+            </button>
+          ) : (
+            <span className="flex-[2] flex items-center justify-center rounded-xl bg-primary/10 py-3 text-xs font-semibold text-primary">
+              ✓ Confirmada
+            </span>
+          )}
         </div>
       </div>
     </ModalShell>
