@@ -912,6 +912,12 @@ function PastReservationCard({ r, i }: { r: any; i: number }) {
   const restaurant = r.restaurants as any;
   const [open, setOpen] = useState(false);
 
+  const dateStr = r.reservation_date
+    ? new Date(r.reservation_date + "T12:00:00").toLocaleDateString("pt-BR", {
+        weekday: "short", day: "numeric", month: "short", year: "numeric",
+      })
+    : "—";
+
   return (
     <motion.article
       custom={i}
@@ -920,6 +926,7 @@ function PastReservationCard({ r, i }: { r: any; i: number }) {
       animate="show"
       className="overflow-hidden rounded-2xl border border-border/60 bg-card"
     >
+      {/* Header row */}
       <button className="flex w-full items-center gap-3 p-3 text-left" onClick={() => setOpen((v) => !v)}>
         <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl">
           {restaurant?.image_url ? (
@@ -929,16 +936,16 @@ function PastReservationCard({ r, i }: { r: any; i: number }) {
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-display text-base truncate">{restaurant?.name ?? "Restaurante"}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-display text-base truncate">{restaurant?.name ?? "Restaurante"}</p>
+            {r.confirmation_code && (
+              <span className="shrink-0 rounded-md bg-surface px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+                #{r.confirmation_code}
+              </span>
+            )}
+          </div>
           <p className="text-[11px] text-muted-foreground mt-0.5">
-            {r.reservation_date
-              ? new Date(r.reservation_date + "T12:00:00").toLocaleDateString("pt-BR", {
-                  weekday: "short",
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })
-              : "—"}{" · "}{r.time_slot ?? "—"}{" · "}{r.party_size ?? 1} pessoa{(r.party_size ?? 1) !== 1 ? "s" : ""}
+            {dateStr} · {r.time_slot ?? "—"} · {r.party_size ?? 1} pessoa{(r.party_size ?? 1) !== 1 ? "s" : ""}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -951,6 +958,7 @@ function PastReservationCard({ r, i }: { r: any; i: number }) {
         </div>
       </button>
 
+      {/* Expanded section */}
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
@@ -960,7 +968,25 @@ function PastReservationCard({ r, i }: { r: any; i: number }) {
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] as const }}
             className="overflow-hidden"
           >
-            <div className="border-t border-border/60 px-4 py-3 space-y-2">
+            <div className="border-t border-border/60 px-4 py-3 space-y-2.5">
+
+              {/* Stats row */}
+              <div className="grid grid-cols-3 divide-x divide-border/60 rounded-xl border border-border/60 bg-surface/50 py-2 text-center">
+                <div className="flex flex-col items-center gap-0.5 px-2">
+                  <Calendar size={11} className="text-primary" />
+                  <span className="text-[10px] text-muted-foreground leading-tight">{dateStr.split(",")[0]}</span>
+                </div>
+                <div className="flex flex-col items-center gap-0.5 px-2">
+                  <Clock size={11} className="text-primary" />
+                  <span className="text-[10px] text-muted-foreground">{r.time_slot ?? "—"}</span>
+                </div>
+                <div className="flex flex-col items-center gap-0.5 px-2">
+                  <Users size={11} className="text-primary" />
+                  <span className="text-[10px] text-muted-foreground">{r.party_size ?? 1} pessoas</span>
+                </div>
+              </div>
+
+              {/* Details */}
               {restaurant?.cuisine && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span className="text-primary">✦</span>
@@ -979,12 +1005,22 @@ function PastReservationCard({ r, i }: { r: any; i: number }) {
                   {r.contact_phone}
                 </div>
               )}
-              {r.status === "completed" && (
-                <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-400 font-medium mt-1">
-                  <Star size={11} className="fill-emerald-400" />
-                  150 pontos creditados
+
+              {/* Footer row: points + spent */}
+              <div className="flex items-center gap-2 pt-0.5">
+                {r.status === "completed" ? (
+                  <div className="flex flex-1 items-center gap-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-400 font-medium">
+                    <Star size={11} className="fill-emerald-400 shrink-0" />
+                    +150 pontos creditados
+                  </div>
+                ) : (
+                  <div className="flex-1" />
+                )}
+                <div className="flex flex-col items-end">
+                  <span className="text-[10px] text-muted-foreground">Valor gasto</span>
+                  <span className="text-sm font-semibold text-muted-foreground">—</span>
                 </div>
-              )}
+              </div>
             </div>
           </motion.div>
         )}
