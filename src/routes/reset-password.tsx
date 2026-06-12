@@ -47,7 +47,7 @@ function ResetPassword() {
     if (!isSupabaseConfigured || !supabase) {
       await new Promise((r) => setTimeout(r, 1000));
       toast.success("Senha redefinida com sucesso!");
-      setTimeout(() => navigate({ to: "/login" }), 2000);
+      setTimeout(() => navigate({ to: "/login", search: { redirect: "/" } }), 2000);
       setLoading(false);
       return;
     }
@@ -58,7 +58,7 @@ function ResetPassword() {
       toast.error(error.message);
     } else {
       toast.success("Senha redefinida com sucesso!");
-      setTimeout(() => navigate({ to: "/login" }), 2000);
+      setTimeout(() => navigate({ to: "/login", search: { redirect: "/" } }), 2000);
     }
   }
 

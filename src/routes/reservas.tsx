@@ -284,12 +284,14 @@ function Reservas() {
           <div className="mt-8 flex w-full flex-col gap-3">
             <Link
               to="/login"
+              search={{ redirect: "/reservas" }}
               className="flex w-full items-center justify-center rounded-full bg-accent py-3.5 text-sm font-semibold text-accent-foreground"
             >
               Entrar
             </Link>
             <Link
               to="/signup"
+              search={{ redirect: "/reservas" }}
               className="flex w-full items-center justify-center rounded-full border border-border/60 py-3.5 text-sm font-medium text-foreground transition-colors hover:bg-surface"
             >
               Criar conta

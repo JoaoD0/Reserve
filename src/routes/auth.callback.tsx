@@ -14,14 +14,14 @@ function AuthCallback() {
     supabase!.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         toast.error("Link inválido ou expirado. Tente fazer login.");
-        navigate({ to: "/login" });
+        navigate({ to: "/login", search: { redirect: "/" } });
         return;
       }
       if (session) {
         toast.success("E-mail confirmado! Bem-vindo ao Reservê.");
         navigate({ to: "/perfil" });
       } else {
-        navigate({ to: "/login" });
+        navigate({ to: "/login", search: { redirect: "/" } });
       }
     });
   }, [navigate]);

@@ -47,6 +47,7 @@ function ForgotPassword() {
         {/* Back button */}
         <Link
           to="/login"
+          search={{ redirect: "/" }}
           className="absolute left-5 top-12 flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-surface/60 text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft size={16} />
@@ -75,6 +76,7 @@ function ForgotPassword() {
               </p>
               <Link
                 to="/login"
+                search={{ redirect: "/" }}
                 className="mt-8 text-sm font-medium text-primary transition-colors hover:text-primary/80"
               >
                 Voltar ao login
