@@ -117,6 +117,18 @@ type UserReward = {
   is_used: boolean;
 };
 
+const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
+
+const container = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.09, delayChildren: 0.04 } },
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } },
+};
+
 function getTier(pts: number) {
   return TIERS.find((t) => pts >= t.min && pts <= t.max) ?? TIERS[0];
 }
@@ -212,18 +224,26 @@ function Recompensas() {
 
   return (
     <MobileShell>
-      <header className="px-5 pt-6">
+      <motion.header
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="px-5 pt-6"
+      >
         <h1 className="font-display text-2xl">Recompensas</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">Troque pontos por experiências exclusivas</p>
-      </header>
+      </motion.header>
 
-      <div className="flex flex-col gap-5 px-5 pt-5 pb-32">
+      <motion.div
+        variants={container}
+        initial="hidden"
+        animate="visible"
+        className="flex flex-col gap-5 px-5 pt-5 pb-32"
+      >
 
         {/* Points card */}
         <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          variants={fadeUp}
           className="relative overflow-hidden rounded-3xl bg-card border border-border/60"
         >
           {/* Glow */}
@@ -276,7 +296,7 @@ function Recompensas() {
 
         {/* Active coupons */}
         {userRewards.length > 0 && (
-          <div>
+          <motion.div variants={fadeUp}>
             <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Meus cupons</p>
             <div className="flex flex-col gap-2">
               {userRewards.map((ur) => {
@@ -331,23 +351,20 @@ function Recompensas() {
                 );
               })}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Rewards */}
-        <div>
+        <motion.div variants={fadeUp}>
           <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Disponíveis para resgatar</p>
           <div className="overflow-hidden rounded-2xl border border-border/60 bg-card divide-y divide-border/60">
-            {REWARDS.map((reward, i) => {
+            {REWARDS.map((reward) => {
               const unlocked = points >= reward.points;
               const redeemed = redeemedIds.has(reward.id);
               const { Icon } = reward;
               return (
-                <motion.div
+                <div
                   key={reward.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: i * 0.05 }}
                   className={`flex items-center gap-3 px-4 py-3.5 ${!unlocked ? "opacity-50" : ""}`}
                 >
                   <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${unlocked ? reward.iconBg : "bg-surface"}`}>
@@ -380,24 +397,21 @@ function Recompensas() {
                   >
                     {redeemed ? "Resgatado" : "Resgatar"}
                   </button>
-                </motion.div>
+                </div>
               );
             })}
           </div>
-        </div>
+        </motion.div>
 
         {/* Earn section */}
-        <div className="grid grid-cols-3 gap-2">
+        <motion.div variants={fadeUp} className="grid grid-cols-3 gap-2">
           {[
             { Icon: CalendarCheck, label: "Reserva", pts: "+150" },
             { Icon: Star, label: "Avaliação", pts: "+50" },
             { Icon: Users, label: "Indicação", pts: "+200" },
-          ].map(({ Icon, label, pts }, i) => (
-            <motion.div
+          ].map(({ Icon, label, pts }) => (
+            <div
               key={label}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + i * 0.06 }}
               className="flex flex-col items-center gap-1.5 rounded-2xl border border-border/60 bg-card py-3.5 px-2"
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10">
@@ -405,11 +419,11 @@ function Recompensas() {
               </div>
               <span className="text-[10px] text-muted-foreground text-center leading-tight">{label}</span>
               <span className="text-xs font-semibold text-primary">{pts} pts</span>
-            </motion.div>
+            </div>
           ))}
-        </div>
+        </motion.div>
 
-      </div>
+      </motion.div>
 
       <AnimatePresence>
         {qrCoupon && (
