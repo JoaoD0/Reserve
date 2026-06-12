@@ -1,6 +1,7 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
 import {
   Bell,
   HelpCircle,
@@ -9,7 +10,9 @@ import {
   Heart,
   LogOut,
   User,
+  Camera,
 } from "lucide-react";
+import { toast } from "sonner";
 import { MobileShell } from "@/components/MobileShell";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -20,6 +23,14 @@ export const Route = createFileRoute("/perfil")({
   component: Perfil,
   head: () => ({ meta: [{ title: "Perfil — Reservê" }] }),
 });
+
+type Tier = { label: string; badge: string; icon: string };
+function getTier(pts: number): Tier {
+  if (pts >= 5000) return { label: "Diamante", badge: "border-cyan-700/40 bg-cyan-900/20 text-cyan-400", icon: "💎" };
+  if (pts >= 1000) return { label: "Ouro", badge: "border-yellow-600/40 bg-yellow-900/20 text-yellow-400", icon: "🥇" };
+  if (pts >= 500)  return { label: "Prata", badge: "border-slate-500/40 bg-slate-700/20 text-slate-300", icon: "🥈" };
+  return { label: "Bronze", badge: "border-orange-700/40 bg-orange-900/20 text-orange-400", icon: "🥉" };
+}
 
 function getInitials(name?: string, email?: string): string {
   if (name) {
@@ -48,18 +59,48 @@ function Perfil() {
     enabled: !!user && !!supabase,
   });
 
-  const { data: points } = useQuery<number>({
-    queryKey: ["points", user?.id],
+  const qc = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: profileData } = useQuery({
+    queryKey: ["profile", user?.id],
     queryFn: async () => {
-      if (!supabase || !user) return 0;
+      if (!supabase || !user) return { points: 0, avatarUrl: null as string | null };
       const { data } = await supabase
         .from("profiles")
-        .select("points")
+        .select("points, avatar_url")
         .eq("id", user.id)
         .single();
-      return data?.points ?? 0;
+      return { points: data?.points ?? 0, avatarUrl: (data as any)?.avatar_url ?? null };
     },
     enabled: !!user && !!supabase,
+  });
+  const points = profileData?.points ?? 0;
+  const avatarUrl = profileData?.avatarUrl ?? null;
+
+  const uploadAvatar = useMutation({
+    mutationFn: async (file: File) => {
+      if (!supabase || !user) throw new Error("Não autenticado.");
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const path = `${user.id}/avatar.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+      const publicUrl = urlData.publicUrl + `?t=${Date.now()}`;
+      const { error: updateErr } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl } as any)
+        .eq("id", user.id);
+      if (updateErr) throw updateErr;
+      return publicUrl;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profile", user?.id] });
+      toast.success("Foto atualizada!");
+    },
+    onError: () => toast.error("Erro ao enviar foto."),
   });
 
   if (location.pathname !== "/perfil") return <Outlet />;
@@ -124,15 +165,46 @@ function Perfil() {
         >
           <div className="relative">
             <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-primary via-gold to-primary opacity-70 blur-md" />
-            <div className="relative flex h-24 w-24 items-center justify-center rounded-full border-2 border-background bg-surface-elevated">
-              <span className="font-display text-3xl text-gradient-gold">{initials}</span>
+            <div className="relative flex h-24 w-24 items-center justify-center rounded-full border-2 border-background bg-surface-elevated overflow-hidden">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={fullName} className="h-full w-full object-cover" />
+              ) : (
+                <span className="font-display text-3xl text-gradient-gold">{initials}</span>
+              )}
             </div>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadAvatar.isPending}
+              className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground shadow-lg disabled:opacity-60"
+            >
+              {uploadAvatar.isPending ? (
+                <span className="h-3 w-3 rounded-full border-2 border-primary-foreground border-t-transparent animate-spin" />
+              ) : (
+                <Camera size={12} />
+              )}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) uploadAvatar.mutate(file);
+                e.target.value = "";
+              }}
+            />
           </div>
           <h1 className="font-display mt-4 text-2xl">{fullName}</h1>
           <p className="text-xs text-muted-foreground">{user?.email ?? ""}</p>
-          <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-orange-700/40 bg-orange-900/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-orange-400">
-            <Award size={11} /> Membro Bronze
-          </span>
+          {(() => {
+            const tier = getTier(points);
+            return (
+              <span className={`mt-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-wider ${tier.badge}`}>
+                <Award size={11} /> Membro {tier.label}
+              </span>
+            );
+          })()}
         </motion.div>
 
         {/* Stats */}

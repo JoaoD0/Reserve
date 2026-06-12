@@ -927,6 +927,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 function PastReservationCard({ r, i }: { r: any; i: number }) {
   const restaurant = r.restaurants as any;
+  const [open, setOpen] = useState(false);
 
   return (
     <motion.article
@@ -936,7 +937,7 @@ function PastReservationCard({ r, i }: { r: any; i: number }) {
       animate="show"
       className="overflow-hidden rounded-2xl border border-border/60 bg-card"
     >
-      <div className="flex items-center gap-3 p-3">
+      <button className="flex w-full items-center gap-3 p-3 text-left" onClick={() => setOpen((v) => !v)}>
         <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl">
           {restaurant?.image_url ? (
             <img src={restaurant.image_url} alt={restaurant.name} className="h-full w-full object-cover" loading="lazy" />
@@ -957,10 +958,54 @@ function PastReservationCard({ r, i }: { r: any; i: number }) {
               : "—"}{" · "}{r.time_slot ?? "—"}{" · "}{r.party_size ?? 1} pessoa{(r.party_size ?? 1) !== 1 ? "s" : ""}
           </p>
         </div>
-        <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-semibold ${STATUS_STYLE[r.status] ?? STATUS_STYLE.completed}`}>
-          {STATUS_LABEL[r.status] ?? r.status}
-        </span>
-      </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${STATUS_STYLE[r.status] ?? STATUS_STYLE.completed}`}>
+            {STATUS_LABEL[r.status] ?? r.status}
+          </span>
+          <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+            <ChevronDown size={14} className="text-muted-foreground" />
+          </motion.span>
+        </div>
+      </button>
+
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] as const }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-border/60 px-4 py-3 space-y-2">
+              {restaurant?.cuisine && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="text-primary">✦</span>
+                  {restaurant.cuisine}
+                </div>
+              )}
+              {restaurant?.address && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <MapPin size={11} className="text-primary shrink-0" />
+                  {restaurant.address}
+                </div>
+              )}
+              {r.contact_phone && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Phone size={11} className="text-primary shrink-0" />
+                  {r.contact_phone}
+                </div>
+              )}
+              {r.status === "completed" && (
+                <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-400 font-medium mt-1">
+                  <Star size={11} className="fill-emerald-400" />
+                  150 pontos creditados
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.article>
   );
 }

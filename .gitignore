@@ -31,3 +31,6 @@ Thumbs.db
 .claude/
 .lovable/
 .tanstack/
+
+# Obsidian
+.obsidian/
