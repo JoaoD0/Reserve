@@ -38,6 +38,7 @@ type Reward = {
   points: number;
   accent: string;
   iconBg: string;
+  headerBg: string;
 };
 
 const REWARDS: Reward[] = [
@@ -49,6 +50,7 @@ const REWARDS: Reward[] = [
     points: 300,
     accent: "text-sky-400",
     iconBg: "bg-sky-500/10",
+    headerBg: "bg-sky-500/15",
   },
   {
     id: "discount10",
@@ -58,6 +60,7 @@ const REWARDS: Reward[] = [
     points: 600,
     accent: "text-emerald-400",
     iconBg: "bg-emerald-500/10",
+    headerBg: "bg-emerald-500/15",
   },
   {
     id: "vip",
@@ -67,6 +70,7 @@ const REWARDS: Reward[] = [
     points: 1200,
     accent: "text-gold",
     iconBg: "bg-gold/10",
+    headerBg: "bg-gold/15",
   },
   {
     id: "discount20",
@@ -76,6 +80,7 @@ const REWARDS: Reward[] = [
     points: 2500,
     accent: "text-primary",
     iconBg: "bg-primary/10",
+    headerBg: "bg-primary/15",
   },
   {
     id: "chef",
@@ -85,6 +90,7 @@ const REWARDS: Reward[] = [
     points: 5000,
     accent: "text-violet-400",
     iconBg: "bg-violet-500/10",
+    headerBg: "bg-violet-500/15",
   },
 ];
 
@@ -283,32 +289,43 @@ function Recompensas() {
                     key={ur.id}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card px-4 py-3.5"
+                    className="overflow-hidden rounded-2xl border border-border/60"
                   >
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${reward.iconBg}`}>
-                      <Icon size={18} className={reward.accent} />
+                    {/* Ticket header */}
+                    <div className={`${reward.headerBg} flex items-center gap-3 px-4 py-3`}>
+                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-black/10`}>
+                        <Icon size={15} className={reward.accent} />
+                      </div>
+                      <p className="flex-1 text-sm font-semibold">{reward.name}</p>
+                      <span className="text-[10px] text-muted-foreground">Uso único</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{reward.name}</p>
-                      <p className="mt-0.5 font-mono text-xs tracking-wider text-primary">{ur.coupon_code}</p>
-                      <p className="mt-0.5 text-[10px] text-muted-foreground">Válido até {expires}</p>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => setQrCoupon(ur.coupon_code)}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-surface transition-colors active:bg-surface-elevated"
-                      >
-                        <QrCode size={14} className="text-muted-foreground" />
-                      </button>
-                      <button
-                        onClick={() => copyCode(ur.coupon_code)}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-surface transition-colors active:bg-surface-elevated"
-                      >
-                        {copied === ur.coupon_code
-                          ? <Check size={14} className="text-emerald-400" />
-                          : <Copy size={14} className="text-muted-foreground" />
-                        }
-                      </button>
+
+                    {/* Dashed divider */}
+                    <div className="border-t border-dashed border-border/50" />
+
+                    {/* Ticket body */}
+                    <div className="flex items-center justify-between gap-3 bg-card px-4 py-3">
+                      <div className="min-w-0">
+                        <p className={`font-mono text-sm font-bold tracking-widest ${reward.accent}`}>{ur.coupon_code}</p>
+                        <p className="mt-0.5 text-[10px] text-muted-foreground">Válido até {expires}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => setQrCoupon(ur.coupon_code)}
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-surface transition-colors active:bg-surface-elevated"
+                        >
+                          <QrCode size={14} className="text-muted-foreground" />
+                        </button>
+                        <button
+                          onClick={() => copyCode(ur.coupon_code)}
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-surface transition-colors active:bg-surface-elevated"
+                        >
+                          {copied === ur.coupon_code
+                            ? <Check size={14} className="text-emerald-400" />
+                            : <Copy size={14} className="text-muted-foreground" />
+                          }
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 );
