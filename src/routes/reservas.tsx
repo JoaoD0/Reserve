@@ -51,48 +51,6 @@ type Reservation = {
   dishes: Dish[];
 };
 
-const upcomingSeed: Reservation[] = [
-  {
-    name: "Sakura Omakase",
-    img: sushiImg,
-    date: "Sex, 16 Mai",
-    time: "20:30",
-    people: 2,
-    address: "Rua dos Pinheiros 1280, Jardins",
-    phone: "+55 11 4002-8922",
-    rating: 4.9,
-    cuisine: "Japonês contemporâneo",
-    description:
-      "Balcão íntimo de 10 lugares. Omakase autoral do chef Kenzo Arata, com peixes selecionados diariamente do Tsukiji.",
-    status: "Confirmada",
-    dishes: [
-      { name: "Omakase 12 cortes", price: "R$ 320", description: "Seleção do chef, 12 etapas" },
-      { name: "Sashimi de toro", price: "R$ 145", description: "Barriga de atum gordo" },
-      { name: "Tempura de camarão", price: "R$ 78", description: "Camarão rosa empanado" },
-      { name: "Sake pairing", price: "R$ 220", description: "Harmonização 5 doses" },
-    ],
-  },
-  {
-    name: "Atelier Trufa",
-    img: sushiImg,
-    date: "Sáb, 24 Mai",
-    time: "21:00",
-    people: 4,
-    address: "Rua Aspicuelta 410, Vila Madalena",
-    phone: "+55 11 3815-7733",
-    rating: 4.8,
-    cuisine: "Italiano · Autoral",
-    description:
-      "Cozinha italiana contemporânea com massas frescas feitas na hora e foco em trufas brancas e negras.",
-    status: "Aguardando",
-    dishes: [
-      { name: "Tagliolini ao tartufo", price: "R$ 189", description: "Massa fresca, lascas de trufa" },
-      { name: "Risoto de funghi porcini", price: "R$ 162" },
-      { name: "Burrata com trufa negra", price: "R$ 98" },
-      { name: "Tiramisù da casa", price: "R$ 54" },
-    ],
-  },
-];
 
 const tabs = ["Próximas", "Club", "Histórico"] as const;
 type Tab = (typeof tabs)[number];
@@ -140,9 +98,7 @@ function Reservas() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("Próximas");
   const [modal, setModal] = useState<Modal>(null);
-  const [favorites, setFavorites] = useState<Record<string, boolean>>({
-    "Sakura Omakase": true,
-  });
+  const [favorites, setFavorites] = useState<Record<string, boolean>>({});
 
   /* ── Real reservations from Supabase ── */
   const { data: realUpcoming = [] } = useQuery({
@@ -224,9 +180,7 @@ function Reservas() {
     enabled: isConfigured && !!user,
   });
 
-  const upcomingList: Reservation[] = isConfigured && user ? realUpcoming : upcomingSeed;
-  const [reservations, setReservations] = useState<Reservation[]>(upcomingSeed);
-  const displayReservations = isConfigured && user ? upcomingList : reservations;
+  const displayReservations = realUpcoming;
 
   const toggleFav = (name: string) =>
     setFavorites((f) => ({ ...f, [name]: !f[name] }));
@@ -252,15 +206,13 @@ function Reservas() {
         .from("reservations")
         .update({ reservation_date: isoDate, time_slot: time })
         .eq("id", r.id);
+      qc.invalidateQueries({ queryKey: ["userReservations", user?.id] });
     }
-    setReservations((rs) =>
-      rs.map((x) => (x.name === r.name ? { ...x, reservationDate: isoDate, time } : x))
-    );
     setModal(null);
   };
 
   /* ── Auth gate ── */
-  if (isConfigured && !authLoading && !user) {
+  if (!authLoading && !user) {
     return (
       <MobileShell>
         <header className="flex items-center px-5 pt-6">
