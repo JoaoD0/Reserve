@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import QRCode from "react-qr-code";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Trophy,
@@ -14,6 +15,8 @@ import {
   CalendarCheck,
   Star,
   Users,
+  QrCode,
+  X,
 } from "lucide-react";
 import { useState } from "react";
 import { MobileShell } from "@/components/MobileShell";
@@ -127,6 +130,7 @@ function Recompensas() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [copied, setCopied] = useState<string | null>(null);
+  const [qrCoupon, setQrCoupon] = useState<string | null>(null);
 
   const { data: points = 0 } = useQuery<number>({
     queryKey: ["points", user?.id],
@@ -196,6 +200,9 @@ function Recompensas() {
     : 100;
   const redeemedIds = new Set(userRewards.map((r) => r.reward_id));
   const tierColor = TIER_COLORS[tier.name];
+  const qrEntry = qrCoupon ? (userRewards.find((r) => r.coupon_code === qrCoupon) ?? null) : null;
+  const qrRewardDef = qrEntry ? (REWARDS.find((r) => r.id === qrEntry.reward_id) ?? null) : null;
+  const qrExpires = qrEntry ? new Date(qrEntry.expires_at).toLocaleDateString("pt-BR") : "";
 
   return (
     <MobileShell>
@@ -361,15 +368,23 @@ function Recompensas() {
                       <p className="mt-0.5 font-mono text-xs tracking-wider text-primary">{ur.coupon_code}</p>
                       <p className="mt-0.5 text-[10px] text-muted-foreground">Válido até {expires}</p>
                     </div>
-                    <button
-                      onClick={() => copyCode(ur.coupon_code)}
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-surface transition-colors active:bg-surface-elevated"
-                    >
-                      {copied === ur.coupon_code
-                        ? <Check size={14} className="text-emerald-400" />
-                        : <Copy size={14} className="text-muted-foreground" />
-                      }
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => setQrCoupon(ur.coupon_code)}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-surface transition-colors active:bg-surface-elevated"
+                      >
+                        <QrCode size={14} className="text-muted-foreground" />
+                      </button>
+                      <button
+                        onClick={() => copyCode(ur.coupon_code)}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-surface transition-colors active:bg-surface-elevated"
+                      >
+                        {copied === ur.coupon_code
+                          ? <Check size={14} className="text-emerald-400" />
+                          : <Copy size={14} className="text-muted-foreground" />
+                        }
+                      </button>
+                    </div>
                   </motion.div>
                 );
               })}
@@ -378,6 +393,51 @@ function Recompensas() {
         )}
 
       </div>
+
+      <AnimatePresence>
+        {qrCoupon && (
+          <>
+            <motion.div
+              key="qr-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setQrCoupon(null)}
+              className="fixed inset-0 z-40 bg-black/60"
+            />
+            <motion.div
+              key="qr-sheet"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-card px-6 pt-6 pb-12"
+            >
+              <div className="flex items-start justify-between mb-6">
+                <div>
+                  <p className="font-semibold text-base">{qrRewardDef?.name ?? "Cupom"}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Válido até {qrExpires}</p>
+                </div>
+                <button
+                  onClick={() => setQrCoupon(null)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-surface"
+                >
+                  <X size={16} className="text-muted-foreground" />
+                </button>
+              </div>
+
+              <div className="flex justify-center mb-5">
+                <div className="rounded-2xl bg-white p-4 shadow-sm">
+                  <QRCode value={qrCoupon} size={192} />
+                </div>
+              </div>
+
+              <p className="text-center font-mono text-sm tracking-wider text-primary">{qrCoupon}</p>
+              <p className="mt-1.5 text-center text-[11px] text-muted-foreground">Mostre ao atendente para validar</p>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </MobileShell>
   );
 }
