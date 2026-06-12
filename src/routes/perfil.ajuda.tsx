@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Search, ChevronDown, MessageCircle, Mail } from "lucide-react";
+import { ArrowLeft, Search, ChevronDown, MessageCircle } from "lucide-react";
 import { MobileShell } from "@/components/MobileShell";
 
 export const Route = createFileRoute("/perfil/ajuda")({
@@ -48,7 +48,7 @@ const FAQ = [
       },
       {
         q: "Como excluo minha conta?",
-        a: "Entre em contato com nosso suporte pelo WhatsApp ou e-mail. A exclusão é irreversível e remove todos os seus dados em até 30 dias.",
+        a: "Fale com o Breno, nossa IA de suporte, aqui mesmo no app. A exclusão é irreversível e remove todos os seus dados em até 30 dias.",
       },
     ],
   },
@@ -82,7 +82,7 @@ const FAQ = [
       },
       {
         q: "Como um restaurante pode se cadastrar?",
-        a: "Restaurantes interessados podem entrar em contato pelo e-mail parceiros@reserve.app. Nossa equipe fará uma curadoria e retornará em até 5 dias úteis.",
+        a: "Restaurantes interessados podem falar com o Breno aqui no app ou conversar diretamente com o time pelo chat. Nossa equipe fará uma curadoria e retornará em breve.",
       },
     ],
   },
@@ -210,24 +210,17 @@ function PerfilAjuda() {
         <div className="overflow-hidden rounded-2xl border border-border/60 bg-card p-5">
           <h2 className="font-display text-base mb-1">Não encontrou o que procurava?</h2>
           <p className="text-xs text-muted-foreground mb-4">
-            Nossa equipe está pronta para te ajudar.
+            O Breno, nossa IA, está pronto para te ajudar com qualquer dúvida.
           </p>
-          <div className="flex flex-col gap-2">
-            <a
-              href="https://wa.me/5511999999999"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex h-11 items-center justify-center gap-2 rounded-full bg-accent text-accent-foreground font-semibold text-sm"
-            >
-              <MessageCircle size={16} /> Falar no WhatsApp
-            </a>
-            <a
-              href="mailto:ajuda@reserve.app"
-              className="flex h-11 items-center justify-center gap-2 rounded-full border border-border/60 text-foreground font-semibold text-sm"
-            >
-              <Mail size={16} /> Enviar e-mail
-            </a>
-          </div>
+          <button
+            onClick={() => {
+              if (!brenoGlobal) toggleBreno();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground font-semibold text-sm"
+          >
+            <MessageCircle size={16} /> Conversar com o Breno
+          </button>
         </div>
       </div>
     </MobileShell>
