@@ -221,6 +221,7 @@ function Recompensas() {
   const qrEntry = qrCoupon ? (userRewards.find((r) => r.coupon_code === qrCoupon) ?? null) : null;
   const qrRewardDef = qrEntry ? (REWARDS.find((r) => r.id === qrEntry.reward_id) ?? null) : null;
   const qrExpires = qrEntry ? new Date(qrEntry.expires_at).toLocaleDateString("pt-BR") : "";
+  const QrIcon = qrRewardDef?.Icon ?? null;
 
   return (
     <MobileShell>
@@ -434,37 +435,62 @@ function Recompensas() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setQrCoupon(null)}
-              className="fixed inset-0 z-40 bg-black/60"
+              className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm"
             />
             <motion.div
               key="qr-sheet"
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-card px-6 pt-6 pb-12"
+              transition={{ type: "spring", damping: 28, stiffness: 280 }}
+              className="fixed bottom-0 left-1/2 z-50 w-full max-w-sm -translate-x-1/2 overflow-hidden rounded-t-3xl bg-card"
             >
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <p className="font-semibold text-base">{qrRewardDef?.name ?? "Cupom"}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Válido até {qrExpires}</p>
+              {/* Colored header */}
+              <div className={`${qrRewardDef?.headerBg ?? "bg-primary/15"} px-6 pt-6 pb-5`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {QrIcon && (
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${qrRewardDef?.iconBg ?? "bg-primary/10"}`}>
+                        <QrIcon size={18} className={qrRewardDef?.accent ?? "text-primary"} />
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-semibold text-base leading-tight">{qrRewardDef?.name ?? "Cupom"}</p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                          Válido
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">até {qrExpires}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setQrCoupon(null)}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/10"
+                  >
+                    <X size={15} className="text-foreground/70" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setQrCoupon(null)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-surface"
-                >
-                  <X size={16} className="text-muted-foreground" />
-                </button>
               </div>
 
-              <div className="flex justify-center mb-5">
-                <div className="rounded-2xl bg-white p-4 shadow-sm">
-                  <QRCode value={qrCoupon} size={192} />
+              {/* QR + code */}
+              <div className="px-6 pt-7 pb-12">
+                <div className="flex justify-center mb-5">
+                  <div className="relative">
+                    <div className={`pointer-events-none absolute -inset-3 rounded-3xl blur-xl opacity-50 ${qrRewardDef?.iconBg ?? "bg-primary/10"}`} />
+                    <div className="relative rounded-2xl bg-white p-4 shadow-lg">
+                      <QRCode value={qrCoupon} size={200} />
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              <p className="text-center font-mono text-sm tracking-wider text-primary">{qrCoupon}</p>
-              <p className="mt-1.5 text-center text-[11px] text-muted-foreground">Mostre ao atendente para validar</p>
+                <p className={`text-center font-mono text-sm font-bold tracking-widest ${qrRewardDef?.accent ?? "text-primary"}`}>
+                  {qrCoupon}
+                </p>
+                <p className="mt-1.5 text-center text-[11px] text-muted-foreground">
+                  Mostre ao atendente para validar
+                </p>
+              </div>
             </motion.div>
           </>
         )}
