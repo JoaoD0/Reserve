@@ -11,6 +11,7 @@ import {
 import { useState, useEffect } from "react";
 import { Toaster } from "sonner";
 import { BrenoChatFloating } from "@/components/BrenoChat";
+import { supabase } from "@/lib/supabase";
 
 import appCss from "../styles.css?url";
 
@@ -136,6 +137,17 @@ function BrenoGlobal() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!supabase) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        router.navigate({ to: "/reset-password" });
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>
