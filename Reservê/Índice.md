@@ -47,7 +47,7 @@
 
 | | |
 |---|---|
-| Última versão | **v2.16** |
+| Última versão | **v2.19** |
 | Status | Funcional — desenvolvimento ativo |
 | Deploy | Não deployado em produção |
 | Backend | Supabase (Postgres + Auth + Storage + Edge Functions) |
