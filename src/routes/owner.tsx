@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CalendarCheck, LayoutDashboard, LogOut, Sparkles, Ticket } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
+import { Logo } from "@/components/Logo";
 
 export const Route = createFileRoute("/owner")({
   component: OwnerLayout,
@@ -47,11 +48,9 @@ function OwnerLayout() {
       {/* Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-border/60 bg-card">
         {/* Brand */}
-        <div className="flex items-center gap-3 border-b border-border/60 px-5 py-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/25">
-            <span className="font-display text-sm font-bold text-primary-foreground">R</span>
-          </div>
-          <div className="min-w-0">
+        <div className="flex flex-col gap-1 border-b border-border/60 px-5 py-4">
+          <Logo size={28} showText={false} />
+          <div className="min-w-0 mt-1">
             <p className="truncate font-display text-sm font-semibold">
               {restaurant?.name ?? "Reservê"}
             </p>
