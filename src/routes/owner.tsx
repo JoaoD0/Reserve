@@ -1,24 +1,38 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate, Link, useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { useLocation, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { CalendarCheck, LayoutDashboard, LogOut, Sparkles, Ticket } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/owner")({
   component: OwnerLayout,
 });
 
-const navItems = [
+const NAV = [
   { to: "/owner", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/owner/reservas", label: "Reservas", icon: CalendarCheck, exact: false },
   { to: "/owner/experiencias", label: "Club", icon: Sparkles, exact: false },
   { to: "/owner/cupons", label: "Cupons", icon: Ticket, exact: false },
 ] as const;
 
+function initials(name: string) {
+  return name.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+}
+
 function OwnerLayout() {
-  const { isOwner, loading, signOut, user, profile } = useAuth();
+  const { isOwner, loading, signOut, user, profile, restaurantId } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+
+  const { data: restaurant } = useQuery({
+    queryKey: ["owner", "restaurant-name", restaurantId],
+    enabled: !!restaurantId,
+    queryFn: async () => {
+      const { data } = await supabase!.from("restaurants").select("name").eq("id", restaurantId!).single();
+      return data;
+    },
+  });
 
   useEffect(() => {
     if (loading) return;
@@ -30,52 +44,67 @@ function OwnerLayout() {
 
   return (
     <div className="min-h-screen flex bg-background text-foreground">
-      <aside className="fixed top-0 left-0 h-full w-56 bg-card border-r border-border/60 flex flex-col z-40">
-        <div className="flex items-center gap-2.5 px-5 py-5 border-b border-border/60">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
+      {/* Sidebar */}
+      <aside className="fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-border/60 bg-card">
+        {/* Brand */}
+        <div className="flex items-center gap-3 border-b border-border/60 px-5 py-5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/25">
             <span className="font-display text-sm font-bold text-primary-foreground">R</span>
           </div>
-          <div className="leading-tight">
-            <p className="font-display text-sm font-semibold">Reservê</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Proprietário</p>
+          <div className="min-w-0">
+            <p className="truncate font-display text-sm font-semibold">
+              {restaurant?.name ?? "Reservê"}
+            </p>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Proprietário</p>
           </div>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
-          {navItems.map((item) => {
-            const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
-            const Icon = item.icon;
+        {/* Nav */}
+        <nav className="flex-1 space-y-0.5 px-3 py-4">
+          {NAV.map(({ to, label, icon: Icon, exact }) => {
+            const active = exact ? pathname === to : pathname.startsWith(to);
             return (
               <Link
-                key={item.to}
-                to={item.to}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${
+                key={to}
+                to={to}
+                className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all ${
                   active
-                    ? "bg-primary/15 text-primary font-medium"
+                    ? "bg-primary/15 text-primary font-semibold"
                     : "text-muted-foreground hover:bg-surface hover:text-foreground"
                 }`}
               >
-                <Icon size={16} strokeWidth={active ? 2.2 : 1.8} />
-                {item.label}
+                <Icon size={16} strokeWidth={active ? 2.3 : 1.8} className="shrink-0" />
+                {label}
+                {active && (
+                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
+                )}
               </Link>
             );
           })}
         </nav>
 
-        <div className="px-3 pb-5 border-t border-border/60 pt-3">
-          <p className="px-3 text-[11px] text-muted-foreground mb-1 truncate">{profile?.full_name}</p>
-          <p className="px-3 text-[10px] text-muted-foreground mb-2 truncate">{user?.email}</p>
+        {/* User */}
+        <div className="border-t border-border/60 p-3 space-y-1">
+          <div className="flex items-center gap-3 rounded-xl px-3 py-2.5">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[11px] font-bold text-primary">
+              {profile?.full_name ? initials(profile.full_name) : "?"}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-xs font-medium leading-tight">{profile?.full_name}</p>
+              <p className="truncate text-[10px] text-muted-foreground">{user?.email}</p>
+            </div>
+          </div>
           <button
             onClick={signOut}
-            className="flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:bg-surface hover:text-destructive transition-colors"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-400"
           >
-            <LogOut size={16} />
+            <LogOut size={15} />
             Sair
           </button>
         </div>
       </aside>
 
-      <main className="ml-56 flex-1 min-h-screen">
+      <main className="ml-60 flex-1 min-h-screen">
         <Outlet />
       </main>
     </div>
