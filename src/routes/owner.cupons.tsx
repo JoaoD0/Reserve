@@ -3,7 +3,6 @@ import { useState, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Search, CheckCircle, XCircle, Ticket, Camera, X } from "lucide-react";
 import { toast } from "sonner";
-import { Html5Qrcode } from "html5-qrcode";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/owner/cupons")({
@@ -23,7 +22,7 @@ function OwnerCupons() {
   const [result, setResult] = useState<any>(null);
   const [notFound, setNotFound] = useState(false);
   const [scanning, setScanning] = useState(false);
-  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const scannerRef = useRef<any>(null);
 
   const lookup = useMutation({
     mutationFn: async (couponCode: string) => {
@@ -64,35 +63,39 @@ function OwnerCupons() {
   useEffect(() => {
     if (!scanning) return;
 
-    const scanner = new Html5Qrcode("qr-reader");
-    scannerRef.current = scanner;
     let done = false;
 
-    scanner
-      .start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 240, height: 240 } },
-        (decoded) => {
-          if (done) return;
-          done = true;
-          const cleaned = decoded.trim().toUpperCase();
-          scanner.stop().catch(() => {}).finally(() => {
-            scannerRef.current = null;
-            setCode(cleaned);
-            setScanning(false);
-            lookup.mutate(cleaned);
-          });
-        },
-        () => {}
-      )
-      .catch(() => {
-        toast.error("Não foi possível acessar a câmera. Verifique as permissões do browser.");
-        setScanning(false);
-      });
+    import("html5-qrcode").then(({ Html5Qrcode }) => {
+      if (done) return;
+      const scanner = new Html5Qrcode("qr-reader");
+      scannerRef.current = scanner;
+
+      scanner
+        .start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 240, height: 240 } },
+          (decoded) => {
+            if (done) return;
+            done = true;
+            const cleaned = decoded.trim().toUpperCase();
+            scanner.stop().catch(() => {}).finally(() => {
+              scannerRef.current = null;
+              setCode(cleaned);
+              setScanning(false);
+              lookup.mutate(cleaned);
+            });
+          },
+          () => {}
+        )
+        .catch(() => {
+          toast.error("Não foi possível acessar a câmera. Verifique as permissões do browser.");
+          setScanning(false);
+        });
+    });
 
     return () => {
       done = true;
-      scanner.stop().catch(() => {});
+      scannerRef.current?.stop().catch(() => {});
       scannerRef.current = null;
     };
   }, [scanning]); // eslint-disable-line react-hooks/exhaustive-deps
