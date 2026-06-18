@@ -261,7 +261,7 @@ function Perfil() {
         </div>
 
         <p className="mt-6 text-center text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-          Reservê · v1.0
+          Reservê · v2.24
         </p>
       </section>
     </MobileShell>
