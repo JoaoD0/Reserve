@@ -232,7 +232,10 @@ function OwnerExperiencias() {
                       <Sparkles size={10} /> {type.label}
                     </span>
                     <button
-                      onClick={() => remove.mutate(exp.id)}
+                      onClick={() => {
+                        if (!window.confirm(`Excluir "${exp.title}"?\nTodos os bookings vinculados também serão removidos.`)) return;
+                        remove.mutate(exp.id);
+                      }}
                       disabled={remove.isPending}
                       className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-red-500/15 hover:text-red-400 transition-colors"
                     >

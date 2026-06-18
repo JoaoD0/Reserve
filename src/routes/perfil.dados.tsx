@@ -141,6 +141,7 @@ function PerfilDados() {
   const [gender, setGender] = useState("");
 
   const savedRef = useRef({ fullName: "", phone: "", birthDate: "", cpf: "", gender: "" });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const initial = {
@@ -202,6 +203,32 @@ function PerfilDados() {
     onError: (e) => toast.error("Erro ao salvar", { description: (e as Error).message }),
   });
 
+  const uploadAvatar = useMutation({
+    mutationFn: async (file: File) => {
+      if (!supabase || !user) throw new Error("Não autenticado.");
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const path = `${user.id}/avatar.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+      const publicUrl = urlData.publicUrl + `?t=${Date.now()}`;
+      const { error: updateErr } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl } as any)
+        .eq("id", user.id);
+      if (updateErr) throw updateErr;
+      return publicUrl;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profile", user?.id] });
+      toast.success("Foto atualizada!");
+    },
+    onError: () => toast.error("Erro ao enviar foto."),
+  });
+
+  const avatarUrl: string | null = (profile as any)?.avatar_url ?? null;
   const initials = getInitials(fullName || undefined, user?.email);
 
   return (
@@ -226,12 +253,30 @@ function PerfilDados() {
         >
           <div className="relative">
             <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-primary via-gold to-primary opacity-70 blur-md" />
-            <div className="relative flex h-24 w-24 items-center justify-center rounded-full border-2 border-background bg-surface-elevated">
-              <span className="font-display text-3xl text-gradient-gold">{initials}</span>
+            <div className="relative flex h-24 w-24 items-center justify-center rounded-full border-2 border-background bg-surface-elevated overflow-hidden">
+              {avatarUrl
+                ? <img src={avatarUrl} alt="avatar" className="h-full w-full object-cover" />
+                : <span className="font-display text-3xl text-gradient-gold">{initials}</span>
+              }
             </div>
-            <button className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary border-2 border-background">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadAvatar.isPending}
+              className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary border-2 border-background disabled:opacity-60"
+            >
               <Camera size={13} className="text-primary-foreground" />
             </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) uploadAvatar.mutate(file);
+                e.target.value = "";
+              }}
+            />
           </div>
         </motion.div>
 
