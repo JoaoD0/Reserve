@@ -33,6 +33,7 @@
 - [[Banco de Dados e Segurança]] — tabelas, RLS, triggers, funções SQL
 - [[Decisões Técnicas]] — por que cada escolha foi feita
 - [[Bugs e Pendências]] — bugs ativos, SQL pendente, melhorias
+- [[Emails e Notificações]] — dois sistemas de email, SMTP, Resend, templates, configuração Supabase
 
 ---
 
@@ -79,3 +80,5 @@
 | v2.22 | Busca funcional na home, contagem de reservas por usuário, favoritos por ID, badge zerado, ícone Bar corrigido |
 | v2.23 | Upload de avatar em Meus Dados funcional; confirmação antes de excluir experiência |
 | v2.24 | Fluxo de reserva sem botões duplicados, bottom bar com lógica correta por step, navigate() no login, versão atualizada |
+| v2.25 | auth/callback: race condition PKCE corrigida com onAuthStateChange + timeout fallback |
+| v2.26 | Recuperar senha: botão reenviar com countdown 15s + mensagem amigável no rate limit |
