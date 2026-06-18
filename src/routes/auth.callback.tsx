@@ -11,19 +11,41 @@ function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase!.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        toast.error("Link inválido ou expirado. Tente fazer login.");
-        navigate({ to: "/login", search: { redirect: "/" } });
-        return;
-      }
-      if (session) {
+    let resolved = false;
+
+    function resolve(ok: boolean) {
+      if (resolved) return;
+      resolved = true;
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+      if (ok) {
         toast.success("E-mail confirmado! Bem-vindo ao Reservê.");
         navigate({ to: "/perfil" });
       } else {
+        toast.error("Link inválido ou expirado. Tente fazer login.");
         navigate({ to: "/login", search: { redirect: "/" } });
       }
+    }
+
+    // Listen for the SIGNED_IN event fired after PKCE code exchange completes
+    const { data: { subscription } } = supabase!.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) resolve(true);
+      else if (event === "SIGNED_OUT") resolve(false);
     });
+
+    // Fast path: session already set (e.g. implicit flow or already logged in)
+    supabase!.auth.getSession().then(({ data: { session } }) => {
+      if (session) resolve(true);
+    });
+
+    // Fallback: if nothing fires within 8s, something went wrong
+    const timeout = setTimeout(() => resolve(false), 8000);
+
+    return () => {
+      resolved = true;
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   return (
