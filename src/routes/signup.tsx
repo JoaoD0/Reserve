@@ -54,6 +54,14 @@ function SignupPage() {
     });
     setLoading(false);
     if (error) { toast.error("Não foi possível cadastrar", { description: error.message }); return; }
+    // Supabase retorna identities vazio quando o email já está cadastrado
+    if (data.user && data.user.identities?.length === 0) {
+      toast.error("Esse e-mail já está cadastrado.", {
+        description: "Tente fazer login ou recupere sua senha.",
+        action: { label: "Entrar", onClick: () => navigate({ to: "/login", search: { redirect } }) },
+      });
+      return;
+    }
     if (data.session) {
       toast.success("Conta criada! Bem-vindo ao Reservê.");
       navigate({ to: redirect || "/perfil" });
