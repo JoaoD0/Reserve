@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { MobileShell } from "@/components/MobileShell";
-import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useFavorites } from "@/lib/hooks/useFavorites";
 import { supabase } from "@/lib/supabase";
@@ -113,20 +112,21 @@ function Perfil() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center bg-background">
-        <span className="inline-flex size-16 rounded-full bg-primary/20 items-center justify-center font-display text-3xl text-primary mb-6">R</span>
-        <h1 className="font-display text-2xl">Faça login para continuar</h1>
-        <p className="text-sm text-muted-foreground mt-2 max-w-xs">Acesse seu perfil e gerencie suas reservas.</p>
-        <Link to="/login" search={{ redirect: "/perfil" }}
-          className="mt-8 w-full max-w-xs h-12 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center">
-          Entrar
-        </Link>
-        <Link to="/signup" search={{ redirect: "/perfil" }}
-          className="mt-3 w-full max-w-xs h-12 rounded-full border border-border/60 bg-surface/60 font-bold flex items-center justify-center text-sm">
-          Criar conta
-        </Link>
-        <BottomNav />
-      </div>
+      <MobileShell>
+        <div className="flex flex-col items-center justify-center min-h-[80vh] px-6 text-center">
+          <span className="inline-flex size-16 rounded-full bg-primary/20 items-center justify-center font-display text-3xl text-primary mb-6">R</span>
+          <h1 className="font-display text-2xl">Faça login para continuar</h1>
+          <p className="text-sm text-muted-foreground mt-2 max-w-xs">Acesse seu perfil e gerencie suas reservas.</p>
+          <Link to="/login" search={{ redirect: "/perfil" }}
+            className="mt-8 w-full max-w-xs h-12 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center">
+            Entrar
+          </Link>
+          <Link to="/signup" search={{ redirect: "/perfil" }}
+            className="mt-3 w-full max-w-xs h-12 rounded-full border border-border/60 bg-surface/60 font-bold flex items-center justify-center text-sm">
+            Criar conta
+          </Link>
+        </div>
+      </MobileShell>
     );
   }
 

@@ -84,56 +84,60 @@ function SignupPage() {
 
   if (emailSent) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center bg-background">
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200, damping: 15 }}
-          className="size-24 rounded-full bg-primary/10 grid place-items-center mb-6">
-          <Mail className="size-12 text-primary" />
-        </motion.div>
-        <h1 className="font-display text-3xl">Verifique seu e-mail</h1>
-        <p className="text-sm text-muted-foreground mt-3 max-w-xs">
-          Enviamos um link de confirmação para{" "}
-          <span className="font-bold text-foreground">{submittedEmail}</span>.
-          Clique no link para ativar sua conta.
-        </p>
-        <a href={getWebmailUrl(submittedEmail)}
-          className="mt-8 w-full max-w-xs h-12 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center gap-2">
-          <Mail className="size-4" /> Abrir meu e-mail
-        </a>
-        <button onClick={async () => { if (supabase) { await supabase.auth.resend({ type: "signup", email: submittedEmail }); toast.success("E-mail reenviado!"); } }}
-          className="mt-3 text-sm text-primary font-bold">
-          Reenviar e-mail
-        </button>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+        <div className="mx-auto w-full max-w-[480px] flex flex-col items-center px-6 text-center">
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200, damping: 15 }}
+            className="size-24 rounded-full bg-primary/10 grid place-items-center mb-6">
+            <Mail className="size-12 text-primary" />
+          </motion.div>
+          <h1 className="font-display text-3xl">Verifique seu e-mail</h1>
+          <p className="text-sm text-muted-foreground mt-3 max-w-xs">
+            Enviamos um link de confirmação para{" "}
+            <span className="font-bold text-foreground">{submittedEmail}</span>.
+            Clique no link para ativar sua conta.
+          </p>
+          <a href={getWebmailUrl(submittedEmail)}
+            className="mt-8 w-full max-w-xs h-12 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center gap-2">
+            <Mail className="size-4" /> Abrir meu e-mail
+          </a>
+          <button onClick={async () => { if (supabase) { await supabase.auth.resend({ type: "signup", email: submittedEmail }); toast.success("E-mail reenviado!"); } }}
+            className="mt-3 text-sm text-primary font-bold">
+            Reenviar e-mail
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col px-6 pt-6 pb-10 bg-background">
-      <button onClick={() => navigate({ to: "/" })} className="size-10 rounded-full bg-surface/60 border border-border/60 grid place-items-center">
-        <ArrowLeft className="size-5" />
-      </button>
-
-      <div className="text-center mt-8">
-        <span className="inline-flex size-14 rounded-full bg-primary/20 items-center justify-center font-display text-2xl text-primary">R</span>
-        <h1 className="font-display text-3xl mt-4">Crie sua conta</h1>
-        <p className="text-sm text-muted-foreground mt-1">Reserve em segundos. Cancele quando quiser.</p>
-      </div>
-
-      <form onSubmit={onSubmit} className="mt-8 space-y-3">
-        <FloatingInput type="text" label="Nome completo" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
-        <FloatingInput type="email" label="E-mail" autoComplete="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
-        <div>
-          <FloatingInput type="password" label="Senha" autoComplete="new-password" value={form.password} onChange={setPassword} />
-          {passwordError && <p className="mt-1.5 ml-1 text-xs font-bold text-red-400">{passwordError}</p>}
-        </div>
-        <button type="submit" disabled={loading} className="w-full h-12 rounded-full bg-primary text-primary-foreground font-bold disabled:opacity-50 mt-2">
-          {loading ? "Criando…" : "Criar conta"}
+    <div className="min-h-screen flex flex-col bg-background">
+      <div className="mx-auto w-full max-w-[480px] flex flex-col px-6 pt-6 pb-10">
+        <button onClick={() => navigate({ to: "/" })} className="size-10 rounded-full bg-surface/60 border border-border/60 grid place-items-center">
+          <ArrowLeft className="size-5" />
         </button>
-      </form>
 
-      <p className="text-center text-sm text-muted-foreground mt-8">
-        Já tem conta? <Link to="/login" search={{ redirect }} className="text-primary font-bold">Entrar</Link>
-      </p>
+        <div className="text-center mt-8">
+          <span className="inline-flex size-14 rounded-full bg-primary/20 items-center justify-center font-display text-2xl text-primary">R</span>
+          <h1 className="font-display text-3xl mt-4">Crie sua conta</h1>
+          <p className="text-sm text-muted-foreground mt-1">Reserve em segundos. Cancele quando quiser.</p>
+        </div>
+
+        <form onSubmit={onSubmit} className="mt-8 space-y-3">
+          <FloatingInput type="text" label="Nome completo" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
+          <FloatingInput type="email" label="E-mail" autoComplete="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
+          <div>
+            <FloatingInput type="password" label="Senha" autoComplete="new-password" value={form.password} onChange={setPassword} />
+            {passwordError && <p className="mt-1.5 ml-1 text-xs font-bold text-red-400">{passwordError}</p>}
+          </div>
+          <button type="submit" disabled={loading} className="w-full h-12 rounded-full bg-primary text-primary-foreground font-bold disabled:opacity-50 mt-2">
+            {loading ? "Criando…" : "Criar conta"}
+          </button>
+        </form>
+
+        <p className="text-center text-sm text-muted-foreground mt-8">
+          Já tem conta? <Link to="/login" search={{ redirect }} className="text-primary font-bold">Entrar</Link>
+        </p>
+      </div>
     </div>
   );
 }
