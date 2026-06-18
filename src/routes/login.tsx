@@ -45,8 +45,8 @@ function LoginPage() {
       .eq("id", data.user!.id)
       .single();
     const role = prof?.role ?? "customer";
-    if (role === "admin") { window.location.replace("/admin"); return; }
-    if (role === "owner") { window.location.replace("/owner"); return; }
+    if (role === "admin") { navigate({ to: "/admin" }); return; }
+    if (role === "owner") { navigate({ to: "/owner" }); return; }
     navigate({ to: redirect });
   };
 

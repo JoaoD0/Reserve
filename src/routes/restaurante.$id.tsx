@@ -606,13 +606,6 @@ function RestaurantPage() {
                     {partySize} {partySize === 1 ? "pessoa" : "pessoas"}
                   </p>
 
-                  <button
-                    disabled={!selectedDate}
-                    onClick={() => setStep(2)}
-                    className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground disabled:opacity-40"
-                  >
-                    Próximo <ChevronRight size={16} />
-                  </button>
                 </motion.div>
               )}
 
@@ -689,13 +682,6 @@ function RestaurantPage() {
                     </div>
                   )}
 
-                  <button
-                    disabled={!selectedSlot}
-                    onClick={() => setStep(3)}
-                    className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground disabled:opacity-40"
-                  >
-                    Próximo <ChevronRight size={16} />
-                  </button>
                 </motion.div>
               )}
 
@@ -730,13 +716,6 @@ function RestaurantPage() {
                     />
                   </div>
 
-                  <button
-                    disabled={phone.replace(/\D/g, "").length < 10}
-                    onClick={() => setStep(4)}
-                    className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground disabled:opacity-40"
-                  >
-                    Próximo <ChevronRight size={16} />
-                  </button>
                 </motion.div>
               )}
 
@@ -790,7 +769,12 @@ function RestaurantPage() {
       {tab === "Reservar" && !successCode && (
         <div className="fixed bottom-[80px] left-1/2 z-40 w-full max-w-[480px] -translate-x-1/2 border-t border-border/60 bg-surface-elevated/90 px-5 py-3 backdrop-blur-xl">
           <button
-            disabled={step < 4 ? false : !selectedSlot || createReservation.isPending}
+            disabled={
+              (step === 1 && !selectedDate) ||
+              (step === 2 && !selectedSlot) ||
+              (step === 3 && phone.replace(/\D/g, "").length < 10) ||
+              (step === 4 && (!selectedSlot || createReservation.isPending))
+            }
             onClick={step === 4 ? handleConfirmReservation : () => {
               if (step === 1 && selectedDate) setStep(2);
               else if (step === 2 && selectedSlot) setStep(3);
@@ -800,8 +784,12 @@ function RestaurantPage() {
           >
             {createReservation.isPending ? (
               <><Loader2 size={15} className="animate-spin" /> Confirmando...</>
+            ) : step === 1 ? (
+              selectedDate ? "Próximo" : "Selecione uma data"
+            ) : step === 4 ? (
+              `Confirmar Reserva · ${selectedSlot}`
             ) : selectedSlot ? (
-              step === 4 ? `Confirmar Reserva · ${selectedSlot}` : `Próximo · ${selectedSlot}`
+              `Próximo · ${selectedSlot}`
             ) : (
               "Selecione um horário"
             )}
