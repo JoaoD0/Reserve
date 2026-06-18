@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft, Mail, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
@@ -16,6 +16,30 @@ function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [resending, setResending] = useState(false);
+
+  useEffect(() => {
+    if (!sent) return;
+    setCountdown(15);
+  }, [sent]);
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [countdown]);
+
+  async function handleResend() {
+    if (!supabase || countdown > 0) return;
+    setResending(true);
+    await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + "/reset-password",
+    });
+    setResending(false);
+    setCountdown(15);
+    toast.success("E-mail reenviado!");
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -74,10 +98,24 @@ function ForgotPassword() {
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 Verifique sua caixa de entrada e siga as instruções para redefinir sua senha.
               </p>
+
+              <button
+                onClick={handleResend}
+                disabled={countdown > 0 || resending}
+                className="mt-8 flex w-full items-center justify-center gap-2 rounded-full border border-border/60 bg-surface/60 py-3 text-sm font-medium text-foreground transition-opacity disabled:opacity-40"
+              >
+                {resending
+                  ? <><Loader2 size={14} className="animate-spin" /> Reenviando...</>
+                  : countdown > 0
+                  ? `Reenviar e-mail (${countdown}s)`
+                  : "Reenviar e-mail"
+                }
+              </button>
+
               <Link
                 to="/login"
                 search={{ redirect: "/" }}
-                className="mt-8 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+                className="mt-4 text-sm font-medium text-primary transition-colors hover:text-primary/80"
               >
                 Voltar ao login
               </Link>
