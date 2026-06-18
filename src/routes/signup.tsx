@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Mail } from "lucide-react";
 import { motion } from "framer-motion";
@@ -71,6 +71,17 @@ function SignupPage() {
     setEmailSent(true);
   };
 
+  useEffect(() => {
+    if (!emailSent || !supabase) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        toast.success("E-mail confirmado! Bem-vindo ao Reservê.");
+        navigate({ to: redirect || "/perfil" });
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [emailSent, navigate, redirect]);
+
   if (emailSent) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center bg-background">
@@ -84,7 +95,7 @@ function SignupPage() {
           <span className="font-bold text-foreground">{submittedEmail}</span>.
           Clique no link para ativar sua conta.
         </p>
-        <a href={getWebmailUrl(submittedEmail)} target="_blank" rel="noopener noreferrer"
+        <a href={getWebmailUrl(submittedEmail)}
           className="mt-8 w-full max-w-xs h-12 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center gap-2">
           <Mail className="size-4" /> Abrir meu e-mail
         </a>
