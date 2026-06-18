@@ -58,7 +58,11 @@ function ForgotPassword() {
     });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      if (error.message.includes("rate limit") || error.status === 429) {
+        toast.error("Muitas tentativas. Aguarde alguns minutos e tente novamente.");
+      } else {
+        toast.error("Não foi possível enviar o e-mail.", { description: error.message });
+      }
     } else {
       setSent(true);
       toast.success("Link de recuperação enviado!");
