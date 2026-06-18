@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import {
   MapPin, Search, Bell, Star, Clock, Flame, ArrowUpRight,
-  Sparkles, Fish, UtensilsCrossed, Wine, Martini, Coffee, Navigation, Heart,
+  Sparkles, Fish, UtensilsCrossed, Wine, GlassWater, Coffee, Navigation, Heart,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { MobileShell } from "@/components/MobileShell";
@@ -29,7 +29,7 @@ const BASE_CATEGORIES = [
   { label: "Japonês", Icon: Fish },
   { label: "Italiano", Icon: UtensilsCrossed },
   { label: "Bistrô", Icon: Wine },
-  { label: "Bar", Icon: Martini },
+  { label: "Bar", Icon: GlassWater },
   { label: "Brunch", Icon: Coffee },
 ];
 
@@ -96,7 +96,8 @@ function Home() {
   const [activeCategory, setActiveCategory] = useState("Tudo");
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLocation, setShowLocation] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(2);
+  const [search, setSearch] = useState("");
+  const [unreadCount, setUnreadCount] = useState(0);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
 
   const { data: restaurants, isLoading } = useRestaurants();
@@ -125,6 +126,14 @@ function Home() {
 
   // Filter restaurants
   const filtered = (restaurants ?? []).filter((r) => {
+    if (search) {
+      const q = search.toLowerCase();
+      const match =
+        r.name?.toLowerCase().includes(q) ||
+        r.cuisine?.toLowerCase().includes(q) ||
+        r.location?.toLowerCase().includes(q);
+      if (!match) return false;
+    }
     if (activeCategory === "Tudo") return true;
     if (activeCategory === "Próximos a mim" && userLocation?.lat) {
       return haversineKm(userLocation.lat!, userLocation.lng!, r.latitude, r.longitude) <= 10;
@@ -182,10 +191,11 @@ function Home() {
         <div className="mt-5 flex items-center gap-2 rounded-2xl border border-border/60 bg-surface/70 px-4 py-3.5 backdrop-blur">
           <Search size={17} className="text-muted-foreground" />
           <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar restaurante, cozinha, bairro..."
             className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none"
           />
-          <kbd className="rounded-md border border-border/70 px-1.5 py-0.5 text-[10px] text-muted-foreground">⌘K</kbd>
         </div>
       </section>
 

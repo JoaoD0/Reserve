@@ -182,8 +182,8 @@ function Reservas() {
 
   const displayReservations = realUpcoming;
 
-  const toggleFav = (name: string) =>
-    setFavorites((f) => ({ ...f, [name]: !f[name] }));
+  const toggleFav = (id: string) =>
+    setFavorites((f) => ({ ...f, [id]: !f[id] }));
 
   const cancelReservation = async (r: Reservation) => {
     if (!r.id || !supabase) return;
@@ -336,8 +336,8 @@ function Reservas() {
                   key={r.name + i}
                   r={r}
                   i={i}
-                  isFav={!!favorites[r.name]}
-                  onToggleFav={() => toggleFav(r.name)}
+                  isFav={!!favorites[r.id ?? r.name]}
+                  onToggleFav={() => toggleFav(r.id ?? r.name)}
                   onDetails={() => setModal({ kind: "details", r })}
                   onReschedule={() => setModal({ kind: "reschedule", r })}
                   onCancel={() => cancelReservation(r)}
