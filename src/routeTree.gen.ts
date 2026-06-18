@@ -523,18 +523,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OwnerReservasRouteImport
       parentRoute: typeof OwnerRoute
     }
-    '/owner/cupons': {
-      id: '/owner/cupons'
-      path: '/cupons'
-      fullPath: '/owner/cupons'
-      preLoaderRoute: typeof OwnerCuponsRouteImport
-      parentRoute: typeof OwnerRoute
-    }
     '/owner/experiencias': {
       id: '/owner/experiencias'
       path: '/experiencias'
       fullPath: '/owner/experiencias'
       preLoaderRoute: typeof OwnerExperienciasRouteImport
+      parentRoute: typeof OwnerRoute
+    }
+    '/owner/cupons': {
+      id: '/owner/cupons'
+      path: '/cupons'
+      fullPath: '/owner/cupons'
+      preLoaderRoute: typeof OwnerCuponsRouteImport
       parentRoute: typeof OwnerRoute
     }
     '/clube/$id': {
