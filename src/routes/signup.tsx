@@ -11,6 +11,15 @@ export const Route = createFileRoute("/signup")({
   component: SignupPage,
 });
 
+function getWebmailUrl(email: string): string {
+  const domain = email.split("@")[1]?.toLowerCase() ?? "";
+  if (domain === "gmail.com") return "https://mail.google.com";
+  if (domain === "outlook.com" || domain === "hotmail.com" || domain === "live.com") return "https://outlook.live.com";
+  if (domain === "yahoo.com" || domain === "yahoo.com.br") return "https://mail.yahoo.com";
+  if (domain === "icloud.com" || domain === "me.com") return "https://www.icloud.com/mail";
+  return `mailto:${email}`;
+}
+
 function SignupPage() {
   const { redirect } = Route.useSearch();
   const navigate = useNavigate();
@@ -67,7 +76,7 @@ function SignupPage() {
           <span className="font-bold text-foreground">{submittedEmail}</span>.
           Clique no link para ativar sua conta.
         </p>
-        <a href={`mailto:${submittedEmail}`}
+        <a href={getWebmailUrl(submittedEmail)} target="_blank" rel="noopener noreferrer"
           className="mt-8 w-full max-w-xs h-12 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center gap-2">
           <Mail className="size-4" /> Abrir meu e-mail
         </a>
