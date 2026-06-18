@@ -47,7 +47,7 @@
 
 | | |
 |---|---|
-| Última versão | **v2.19** |
+| Última versão | **v2.24** |
 | Status | Funcional — desenvolvimento ativo |
 | Deploy | Não deployado em produção |
 | Backend | Supabase (Postgres + Auth + Storage + Edge Functions) |
@@ -72,3 +72,10 @@
 | v2.14 | Ajuda: contatos falsos removidos, suporte redirecionado para o Breno (IA) |
 | v2.15 | Histórico de reservas: código de confirmação, stats row, valor gasto (—) |
 | v2.16 | html5-qrcode carregado via import() dinâmico — chunk owner.cupons: 991 kB → 9 kB |
+| v2.17 | Recuperação de senha: listener PASSWORD_RECOVERY no root redireciona para /reset-password |
+| v2.18–2.19 | Owner redesign completo: dashboard, sidebar, reservas, experiências, cupons |
+| v2.20 | Logo real (R + garfo dourado, gerada no Pippit) integrada ao app e componente Logo.tsx |
+| v2.21 | Favicon SVG com logo + metadados corrigidos (título, description, theme-color) |
+| v2.22 | Busca funcional na home, contagem de reservas por usuário, favoritos por ID, badge zerado, ícone Bar corrigido |
+| v2.23 | Upload de avatar em Meus Dados funcional; confirmação antes de excluir experiência |
+| v2.24 | Fluxo de reserva sem botões duplicados, bottom bar com lógica correta por step, navigate() no login, versão atualizada |
