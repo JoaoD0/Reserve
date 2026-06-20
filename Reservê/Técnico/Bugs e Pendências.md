@@ -33,12 +33,23 @@
 
 ---
 
-## 🗺️ Mapa / Localização (v2.40)
+## 🗺️ Mapa / Localização (v2.40–v2.41)
 
-- Tela do restaurante: mapa OSM embutido + botão "Como chegar" (Google Maps / Apple Maps por OS)
-- Modal de detalhes de reserva: botão "Como chegar" via endereço
-- `/owner/configuracoes`: owner preenche CEP → ViaCEP busca endereço → Nominatim geocoda lat/lng automaticamente
+**v2.40:**
+- `/owner/configuracoes`: nova tela onde o owner edita nome, descrição, culinária, horários e preenche **CEP** → ViaCEP busca endereço → Nominatim geocoda lat/lng automaticamente → salva tudo no banco
 - SQL aplicado: `latitude NUMERIC(10,7)`, `longitude NUMERIC(10,7)` em `restaurants`
+- Modal de detalhes de reserva: botão "Como chegar" via endereço (sem precisar de coordenadas)
+
+**v2.41:**
+- Tela do restaurante: thumbnail do mapa clicável abre GPS fullscreen
+- GPS fullscreen com **Leaflet + CartoDB DarkMatter tiles** (tema escuro, gratuito, sem API key)
+- Marcador personalizado do restaurante (pin dourado rotacionado com 🍽️)
+- Ponto pulsante azul na posição real do usuário via `watchPosition`
+- Rota desenhada em tempo real via **OSRM** (gratuito, sem API key)
+- Botão "Localizar" centraliza no usuário e liga rastreamento automático
+- Card inferior com distância e ETA de carro
+- "Iniciar navegação" abre Apple Maps (iOS) ou Google Maps (Android/desktop) com destino pronto
+- `MapView.tsx` carregado via `React.lazy` + `Suspense` para não inflar o bundle principal
 
 ---
 
