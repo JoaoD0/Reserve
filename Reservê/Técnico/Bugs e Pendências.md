@@ -12,7 +12,6 @@
 
 | Item | Arquivo | Detalhe |
 |------|---------|---------|
-| `lang="en"` no HTML | `__root.tsx:103` | App é 100% pt-BR |
 | Notificações 100% fake | `NotificationsDrawer.tsx`, `perfil.notificacoes.tsx` | Arrays estáticos com restaurantes fictícios; estado "lido" não persiste |
 | "+150 pontos" no histórico | `reservas.tsx` | Número fixo; deveria vir do banco |
 | "Valor gasto: —" sempre vazio | `reservas.tsx` | Precisa de tabela `reservation_items` |
@@ -111,3 +110,4 @@ Detectar via `navigator.mediaDevices.enumerateDevices()` se há câmera, e mostr
 | `bookedModal` nunca abre | v2.28 | Slots confirmados tornam-se clicáveis; `setBookedModal(true)` no onClick |
 | Reagendamento sem verificar disponibilidade | v2.31 | `reschedule()` agora consulta conflitos antes de atualizar; toast de erro se slot ocupado |
 | Horário de experiência aceita texto livre | v2.32 | `type="time"` adicionado ao campo; aceita apenas HH:MM |
+| `lang="en"` + textos em inglês no 404/erro | v2.33 | `lang="pt-BR"`, páginas 404 e erro traduzidas |
