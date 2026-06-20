@@ -116,7 +116,7 @@ function RecenterBtn({
   return (
     <button
       onClick={() => { onToggle(); fly(); }}
-      className={`absolute bottom-[140px] right-3 z-[999] flex h-10 w-10 items-center justify-center rounded-full border shadow-lg transition-all ${
+      className={`absolute bottom-[196px] right-3 z-[999] flex h-10 w-10 items-center justify-center rounded-full border shadow-lg transition-all ${
         tracking
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border/60 bg-card/90 text-muted-foreground backdrop-blur"
@@ -262,34 +262,44 @@ export function MapView({ lat, lng, name, address, onClose }: Props) {
         </MapContainer>
       </div>
 
-      {/* Bottom card */}
-      <div className="relative z-[1000] border-t border-border/40 bg-card/95 px-5 py-4 backdrop-blur-xl">
-        {/* Restaurant info */}
-        <p className="font-display text-lg font-medium leading-tight">{name}</p>
-        {address && (
-          <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{address}</p>
-        )}
+      {/* Bottom sheet */}
+      <div className="relative z-[1000] rounded-t-3xl border-t border-border/30 bg-card/95 px-5 pb-8 pt-3 backdrop-blur-xl shadow-[0_-8px_32px_rgba(0,0,0,0.4)]">
+        {/* Handle */}
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border/50" />
 
-        {/* Stats */}
+        {/* Info row */}
+        <div className="flex items-start gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-xl">
+            🍽️
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-display text-base font-semibold leading-tight">{name}</p>
+            {address && (
+              <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{address}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Stats pills */}
         <AnimatePresence>
           {displayDist !== null && (
             <motion.div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-3 flex items-center gap-3"
+              className="mt-4 flex gap-2"
             >
-              <div className="flex items-center gap-1.5 rounded-xl border border-border/60 bg-surface/60 px-3 py-2">
+              <div className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-border/60 bg-surface/60 py-2.5">
                 <Route size={12} className="text-primary" />
-                <span className="text-xs font-medium">{formatDist(displayDist)}</span>
+                <span className="text-xs font-semibold">{formatDist(displayDist)}</span>
               </div>
-              {displayTime !== null && displayTime !== undefined && (
-                <div className="flex items-center gap-1.5 rounded-xl border border-border/60 bg-surface/60 px-3 py-2">
+              {displayTime != null && (
+                <div className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-border/60 bg-surface/60 py-2.5">
                   <Clock size={12} className="text-primary" />
-                  <span className="text-xs font-medium">{formatTime(displayTime)} de carro</span>
+                  <span className="text-xs font-semibold">{formatTime(displayTime)}</span>
                 </div>
               )}
               {geoError && (
-                <p className="text-[11px] text-muted-foreground">Localização indisponível</p>
+                <p className="self-center text-[11px] text-muted-foreground">Localização indisponível</p>
               )}
             </motion.div>
           )}
@@ -301,11 +311,13 @@ export function MapView({ lat, lng, name, address, onClose }: Props) {
             href={mapsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground"
+            className="mt-3 flex h-14 w-full items-center gap-3 rounded-2xl bg-primary px-5 text-sm font-semibold text-primary-foreground active:scale-[0.98] transition-transform"
           >
-            <Navigation size={15} />
-            Iniciar navegação
-            <ChevronRight size={14} className="ml-auto" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15">
+              <Navigation size={15} />
+            </div>
+            <span className="flex-1">Iniciar navegação</span>
+            <ChevronRight size={16} className="text-white/60" />
           </a>
         )}
       </div>
