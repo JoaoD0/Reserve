@@ -10,11 +10,7 @@ import {
 } from "react-leaflet";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Navigation, Locate, X, Clock, Route,
-  CornerUpRight, CornerUpLeft, ArrowUp, MapPin as DestIcon,
-  ExternalLink, Square,
-} from "lucide-react";
+import { Navigation, Locate, X, Clock, Route, ChevronRight } from "lucide-react";
 import { getDirectionsUrl, getDirectionsUrlFromAddress } from "@/lib/utils/location";
 
 /* ─── Custom markers ──────────────────────────────────────────── */
@@ -93,30 +89,6 @@ function formatTime(secs: number) {
   return `${Math.floor(mins / 60)}h ${mins % 60}min`;
 }
 
-function getInstruction(type: string, modifier: string | undefined, name: string): string {
-  const street = name ? ` em ${name}` : "";
-  if (type === "depart") return `Siga em frente${name ? ` por ${name}` : ""}`;
-  if (type === "arrive") return "Você chegou ao destino";
-  if (type === "roundabout" || type === "rotary") return "Entre na rotatória";
-  if (type === "exit roundabout" || type === "exit rotary") return `Saia da rotatória${street}`;
-  if (type === "merge") return `Entre na via${street}`;
-  if (modifier === "right" || modifier === "slight right" || modifier === "sharp right")
-    return `Vire à direita${street}`;
-  if (modifier === "left" || modifier === "slight left" || modifier === "sharp left")
-    return `Vire à esquerda${street}`;
-  if (modifier === "uturn") return "Faça o retorno";
-  return `Continue em frente${street}`;
-}
-
-function ManeuverIcon({ type, modifier, size = 20 }: { type: string; modifier?: string; size?: number }) {
-  if (type === "arrive") return <DestIcon size={size} />;
-  if (modifier === "right" || modifier === "slight right" || modifier === "sharp right")
-    return <CornerUpRight size={size} />;
-  if (modifier === "left" || modifier === "slight left" || modifier === "sharp left")
-    return <CornerUpLeft size={size} />;
-  return <ArrowUp size={size} />;
-}
-
 /* ─── Map controller ──────────────────────────────────────────── */
 
 function RecenterBtn({
@@ -125,14 +97,12 @@ function RecenterBtn({
   geoLoading,
   onToggle,
   onRequestGeo,
-  isNavigating,
 }: {
   userPos: [number, number] | null;
   tracking: boolean;
   geoLoading: boolean;
   onToggle: () => void;
   onRequestGeo: () => void;
-  isNavigating: boolean;
 }) {
   const map = useMap();
 
@@ -141,14 +111,12 @@ function RecenterBtn({
   }, [map, userPos]);
 
   useMapEvents({
-    dragstart: () => !isNavigating && tracking && onToggle(),
+    dragstart: () => tracking && onToggle(),
   });
 
   useEffect(() => {
     if (tracking && userPos) map.flyTo(userPos, 17, { duration: 1.2 });
   }, [tracking, userPos, map]);
-
-  if (isNavigating) return null;
 
   const handleClick = () => {
     if (!userPos) onRequestGeo();
@@ -174,13 +142,6 @@ function RecenterBtn({
 
 /* ─── Types ───────────────────────────────────────────────────── */
 
-type Step = {
-  maneuver: { type: string; modifier?: string; location: [number, number] };
-  name: string;
-  distance: number;
-  duration: number;
-};
-
 type Props = {
   lat: number;
   lng: number;
@@ -194,7 +155,6 @@ type RouteInfo = {
   coords: [number, number][];
   distanceKm: number;
   durationSecs: number;
-  steps: Step[];
 };
 
 /* ─── Main component ──────────────────────────────────────────── */
@@ -205,8 +165,6 @@ export function MapView({ lat, lng, name, address, imageUrl, onClose }: Props) {
   const [route, setRoute] = useState<RouteInfo | null>(null);
   const [geoError, setGeoError] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
-  const [currentStepIdx, setCurrentStepIdx] = useState(0);
   const watchId = useRef<number | null>(null);
 
   const startWatch = useCallback(() => {
@@ -232,12 +190,12 @@ export function MapView({ lat, lng, name, address, imageUrl, onClose }: Props) {
     };
   }, [startWatch]);
 
-  /* Rota via OSRM com passos */
+  /* Rota via OSRM */
   useEffect(() => {
     if (!userPos) return;
     const [uLat, uLng] = userPos;
     fetch(
-      `https://router.project-osrm.org/route/v1/driving/${uLng},${uLat};${lng},${lat}?overview=full&geometries=geojson&steps=true`
+      `https://router.project-osrm.org/route/v1/driving/${uLng},${uLat};${lng},${lat}?overview=full&geometries=geojson`
     )
       .then((r) => r.json())
       .then((d) => {
@@ -246,37 +204,10 @@ export function MapView({ lat, lng, name, address, imageUrl, onClose }: Props) {
         const coords = (rt.geometry.coordinates as [number, number][]).map(
           ([lo, la]) => [la, lo] as [number, number]
         );
-        const steps: Step[] = (rt.legs?.[0]?.steps ?? []).map((s: any) => ({
-          maneuver: s.maneuver,
-          name: s.name ?? "",
-          distance: s.distance,
-          duration: s.duration,
-        }));
-        setRoute({ coords, distanceKm: rt.distance / 1000, durationSecs: rt.duration, steps });
+        setRoute({ coords, distanceKm: rt.distance / 1000, durationSecs: rt.duration });
       })
       .catch(() => {});
   }, [userPos, lat, lng]);
-
-  /* Avança passo quando usuário chega perto do próximo maneuver */
-  useEffect(() => {
-    if (!isNavigating || !userPos || !route?.steps.length) return;
-    const steps = route.steps;
-    for (let i = currentStepIdx; i < steps.length - 1; i++) {
-      const [mLng, mLat] = steps[i + 1].maneuver.location;
-      const dist = haversine(userPos[0], userPos[1], mLat, mLng);
-      if (dist < 0.04) {
-        setCurrentStepIdx(i + 1);
-        break;
-      }
-    }
-  }, [userPos, isNavigating, route, currentStepIdx]);
-
-  const currentStep = route?.steps[currentStepIdx];
-  const nextStep = route?.steps[currentStepIdx + 1];
-
-  const distToNext = nextStep && userPos
-    ? haversine(userPos[0], userPos[1], nextStep.maneuver.location[1], nextStep.maneuver.location[0])
-    : null;
 
   const straightDist = userPos ? haversine(userPos[0], userPos[1], lat, lng) : null;
   const displayDist = route?.distanceKm ?? straightDist;
@@ -289,81 +220,23 @@ export function MapView({ lat, lng, name, address, imageUrl, onClose }: Props) {
       ? getDirectionsUrlFromAddress(address, name)
       : null;
 
-  const startNavigation = () => {
-    setCurrentStepIdx(0);
-    setIsNavigating(true);
-    setTracking(true);
-  };
-
-  const stopNavigation = () => {
-    setIsNavigating(false);
-  };
-
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-background">
       {/* Header */}
       {onClose && (
         <div className="absolute left-0 right-0 top-0 z-[1000] flex items-center justify-between px-4 pt-4">
           <button
-            onClick={isNavigating ? stopNavigation : onClose}
+            onClick={onClose}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-border/40 bg-card/80 backdrop-blur-md text-foreground shadow"
           >
             <X size={16} />
           </button>
-          {!isNavigating && (
-            <div className="rounded-full border border-border/40 bg-card/80 px-4 py-2 backdrop-blur-md shadow">
-              <p className="text-xs font-semibold">{name}</p>
-            </div>
-          )}
+          <div className="rounded-full border border-border/40 bg-card/80 px-4 py-2 backdrop-blur-md shadow">
+            <p className="text-xs font-semibold">{name}</p>
+          </div>
           <div className="w-10" />
         </div>
       )}
-
-      {/* Navigation instruction overlay */}
-      <AnimatePresence>
-        {isNavigating && currentStep && (
-          <motion.div
-            key="nav-instruction"
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ type: "spring", stiffness: 300, damping: 28 }}
-            className="absolute left-4 right-4 top-[68px] z-[999] overflow-hidden rounded-2xl border border-border/30 bg-card/95 shadow-xl backdrop-blur-xl"
-          >
-            <div className="flex items-center gap-3 px-4 py-3.5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary">
-                <ManeuverIcon
-                  type={currentStep.maneuver.type}
-                  modifier={currentStep.maneuver.modifier}
-                  size={22}
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold leading-tight">
-                  {getInstruction(
-                    currentStep.maneuver.type,
-                    currentStep.maneuver.modifier,
-                    currentStep.name
-                  )}
-                </p>
-                {distToNext !== null && (
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
-                    em {formatDist(distToNext)}
-                  </p>
-                )}
-              </div>
-              {displayDist !== null && (
-                <div className="shrink-0 text-right">
-                  <p className="text-xs font-semibold text-primary">{formatDist(displayDist)}</p>
-                  {displayTime != null && (
-                    <p className="text-[10px] text-muted-foreground">{formatTime(displayTime)}</p>
-                  )}
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Map */}
       <div className="flex-1">
@@ -398,7 +271,6 @@ export function MapView({ lat, lng, name, address, imageUrl, onClose }: Props) {
             geoLoading={geoLoading}
             onToggle={() => setTracking((t) => !t)}
             onRequestGeo={startWatch}
-            isNavigating={isNavigating}
           />
         </MapContainer>
       </div>
@@ -407,90 +279,34 @@ export function MapView({ lat, lng, name, address, imageUrl, onClose }: Props) {
       <div className="relative z-[1000] rounded-t-3xl border-t border-border/30 bg-card/95 px-5 pb-8 pt-3 backdrop-blur-xl shadow-[0_-8px_32px_rgba(0,0,0,0.4)]">
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border/50" />
 
-        {!isNavigating ? (
-          <>
-            {/* Info row */}
-            <div className="flex items-start gap-3">
-              <div className="h-11 w-11 shrink-0 overflow-hidden rounded-2xl border border-border/40 bg-surface">
-                {imageUrl ? (
-                  <img src={imageUrl} alt={name} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xl">🍽️</div>
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-display text-base font-semibold leading-tight">{name}</p>
-                {address && (
-                  <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{address}</p>
-                )}
-              </div>
-            </div>
+        {/* Info row */}
+        <div className="flex items-start gap-3">
+          <div className="h-11 w-11 shrink-0 overflow-hidden rounded-2xl border border-border/40 bg-surface">
+            {imageUrl ? (
+              <img src={imageUrl} alt={name} className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-xl">🍽️</div>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-display text-base font-semibold leading-tight">{name}</p>
+            {address && (
+              <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{address}</p>
+            )}
+          </div>
+        </div>
 
-            {/* Stats pills */}
-            <AnimatePresence>
-              {displayDist !== null && (
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 flex gap-2"
-                >
-                  <div className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-border/60 bg-surface/60 py-2.5">
-                    <Route size={12} className="text-primary" />
-                    <span className="text-xs font-semibold">{formatDist(displayDist)}</span>
-                  </div>
-                  {displayTime != null && (
-                    <div className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-border/60 bg-surface/60 py-2.5">
-                      <Clock size={12} className="text-primary" />
-                      <span className="text-xs font-semibold">{formatTime(displayTime)}</span>
-                    </div>
-                  )}
-                  {geoError && !geoLoading && (
-                    <button
-                      onClick={startWatch}
-                      className="self-center text-[11px] text-primary underline-offset-2 hover:underline"
-                    >
-                      Permitir localização
-                    </button>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* CTAs */}
-            <div className="mt-3 flex gap-2">
-              {/* In-app navigation */}
-              <button
-                onClick={startNavigation}
-                disabled={!route || !userPos}
-                className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-primary text-sm font-semibold text-primary-foreground transition-all active:scale-[0.98] disabled:opacity-40"
-              >
-                <Navigation size={15} />
-                Navegar
-              </button>
-
-              {/* Open native GPS */}
-              {mapsUrl && (
-                <a
-                  href={mapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-surface/60 text-muted-foreground transition-all active:scale-[0.98] hover:text-foreground"
-                  title="Abrir no GPS do celular"
-                >
-                  <ExternalLink size={17} />
-                </a>
-              )}
-            </div>
-          </>
-        ) : (
-          /* Navigating mode bottom */
-          <>
-            <div className="flex gap-2 mb-3">
+        {/* Stats pills */}
+        <AnimatePresence>
+          {displayDist !== null && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 flex gap-2"
+            >
               <div className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-border/60 bg-surface/60 py-2.5">
                 <Route size={12} className="text-primary" />
-                <span className="text-xs font-semibold">
-                  {displayDist !== null ? formatDist(displayDist) : "—"}
-                </span>
+                <span className="text-xs font-semibold">{formatDist(displayDist)}</span>
               </div>
               {displayTime != null && (
                 <div className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-border/60 bg-surface/60 py-2.5">
@@ -498,16 +314,32 @@ export function MapView({ lat, lng, name, address, imageUrl, onClose }: Props) {
                   <span className="text-xs font-semibold">{formatTime(displayTime)}</span>
                 </div>
               )}
-            </div>
+              {geoError && !geoLoading && (
+                <button
+                  onClick={startWatch}
+                  className="self-center text-[11px] text-primary underline-offset-2 hover:underline"
+                >
+                  Permitir localização
+                </button>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-            <button
-              onClick={stopNavigation}
-              className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border border-red-500/40 bg-red-500/10 text-sm font-semibold text-red-400 transition-all active:scale-[0.98]"
-            >
-              <Square size={14} fill="currentColor" />
-              Parar navegação
-            </button>
-          </>
+        {/* CTA */}
+        {mapsUrl && (
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 flex h-14 w-full items-center gap-3 rounded-2xl bg-primary px-5 text-sm font-semibold text-primary-foreground active:scale-[0.98] transition-transform"
+          >
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15">
+              <Navigation size={15} />
+            </div>
+            <span className="flex-1">Abrir no GPS</span>
+            <ChevronRight size={16} className="text-white/60" />
+          </a>
         )}
       </div>
     </div>
