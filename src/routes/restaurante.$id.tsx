@@ -218,12 +218,13 @@ function RestaurantSkeleton() {
 /* ─── Location section ────────────────────────────────────────── */
 
 function LocationSection({
-  lat, lng, name, address,
+  lat, lng, name, address, imageUrl,
 }: {
   lat?: number | null;
   lng?: number | null;
   name: string;
   address?: string | null;
+  imageUrl?: string;
 }) {
   const [mapOpen, setMapOpen] = useState(false);
   const hasCoords = !!(lat && lng);
@@ -299,6 +300,7 @@ function LocationSection({
                   lng={lng!}
                   name={name}
                   address={address ?? undefined}
+                  imageUrl={imageUrl}
                   onClose={() => setMapOpen(false)}
                 />
               </Suspense>
@@ -569,6 +571,7 @@ function RestaurantPage() {
           lng={restaurant.longitude}
           name={restaurant.name}
           address={restaurant.address ?? restaurant.location}
+          imageUrl={restaurant.image_url}
         />
       )}
 

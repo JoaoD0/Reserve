@@ -134,6 +134,7 @@ type Props = {
   lng: number;
   name: string;
   address?: string;
+  imageUrl?: string;
   onClose?: () => void;
 };
 
@@ -145,7 +146,7 @@ type RouteInfo = {
 
 /* ─── Main component ──────────────────────────────────────────── */
 
-export function MapView({ lat, lng, name, address, onClose }: Props) {
+export function MapView({ lat, lng, name, address, imageUrl, onClose }: Props) {
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [tracking, setTracking] = useState(false);
   const [route, setRoute] = useState<RouteInfo | null>(null);
@@ -269,8 +270,12 @@ export function MapView({ lat, lng, name, address, onClose }: Props) {
 
         {/* Info row */}
         <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-xl">
-            🍽️
+          <div className="h-11 w-11 shrink-0 overflow-hidden rounded-2xl border border-border/40 bg-surface">
+            {imageUrl ? (
+              <img src={imageUrl} alt={name} className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-xl">🍽️</div>
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-display text-base font-semibold leading-tight">{name}</p>
