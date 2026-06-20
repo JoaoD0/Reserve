@@ -141,9 +141,9 @@ function Home() {
     return r.cuisine === activeCategory;
   });
 
-  const heroRestaurant = (restaurants ?? []).find((r) => r.id === "mare-alta");
-  const featuredList = filtered.filter((r) => r.is_featured);
-  const nearbyList = filtered.filter((r) => !r.is_featured && r.id !== "mare-alta");
+  const heroRestaurant = (restaurants ?? []).find((r) => r.is_featured) ?? null;
+  const featuredList = filtered.filter((r) => r.is_featured && r.id !== heroRestaurant?.id);
+  const nearbyList = filtered.filter((r) => !r.is_featured);
 
   const locationLabel = userLocation?.label ?? "São Paulo";
 
