@@ -32,6 +32,7 @@ import { Route as PerfilAjudaRouteImport } from './routes/perfil.ajuda'
 import { Route as OwnerReservasRouteImport } from './routes/owner.reservas'
 import { Route as OwnerExperienciasRouteImport } from './routes/owner.experiencias'
 import { Route as OwnerCuponsRouteImport } from './routes/owner.cupons'
+import { Route as OwnerConfiguracoesRouteImport } from './routes/owner.configuracoes'
 import { Route as ClubeIdRouteImport } from './routes/clube.$id'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AdminRestaurantesRouteImport } from './routes/admin.restaurantes'
@@ -153,6 +154,11 @@ const OwnerCuponsRoute = OwnerCuponsRouteImport.update({
   path: '/cupons',
   getParentRoute: () => OwnerRoute,
 } as any)
+const OwnerConfiguracoesRoute = OwnerConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => OwnerRoute,
+} as any)
 const ClubeIdRoute = ClubeIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -197,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/admin/restaurantes': typeof AdminRestaurantesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/clube/$id': typeof ClubeIdRoute
+  '/owner/configuracoes': typeof OwnerConfiguracoesRoute
   '/owner/cupons': typeof OwnerCuponsRoute
   '/owner/experiencias': typeof OwnerExperienciasRoute
   '/owner/reservas': typeof OwnerReservasRoute
@@ -224,6 +231,7 @@ export interface FileRoutesByTo {
   '/admin/restaurantes': typeof AdminRestaurantesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/clube/$id': typeof ClubeIdRoute
+  '/owner/configuracoes': typeof OwnerConfiguracoesRoute
   '/owner/cupons': typeof OwnerCuponsRoute
   '/owner/experiencias': typeof OwnerExperienciasRoute
   '/owner/reservas': typeof OwnerReservasRoute
@@ -255,6 +263,7 @@ export interface FileRoutesById {
   '/admin/restaurantes': typeof AdminRestaurantesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/clube/$id': typeof ClubeIdRoute
+  '/owner/configuracoes': typeof OwnerConfiguracoesRoute
   '/owner/cupons': typeof OwnerCuponsRoute
   '/owner/experiencias': typeof OwnerExperienciasRoute
   '/owner/reservas': typeof OwnerReservasRoute
@@ -287,6 +296,7 @@ export interface FileRouteTypes {
     | '/admin/restaurantes'
     | '/auth/callback'
     | '/clube/$id'
+    | '/owner/configuracoes'
     | '/owner/cupons'
     | '/owner/experiencias'
     | '/owner/reservas'
@@ -314,6 +324,7 @@ export interface FileRouteTypes {
     | '/admin/restaurantes'
     | '/auth/callback'
     | '/clube/$id'
+    | '/owner/configuracoes'
     | '/owner/cupons'
     | '/owner/experiencias'
     | '/owner/reservas'
@@ -344,6 +355,7 @@ export interface FileRouteTypes {
     | '/admin/restaurantes'
     | '/auth/callback'
     | '/clube/$id'
+    | '/owner/configuracoes'
     | '/owner/cupons'
     | '/owner/experiencias'
     | '/owner/reservas'
@@ -537,6 +549,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OwnerCuponsRouteImport
       parentRoute: typeof OwnerRoute
     }
+    '/owner/configuracoes': {
+      id: '/owner/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/owner/configuracoes'
+      preLoaderRoute: typeof OwnerConfiguracoesRouteImport
+      parentRoute: typeof OwnerRoute
+    }
     '/clube/$id': {
       id: '/clube/$id'
       path: '/$id'
@@ -604,6 +623,7 @@ const ClubeRouteChildren: ClubeRouteChildren = {
 const ClubeRouteWithChildren = ClubeRoute._addFileChildren(ClubeRouteChildren)
 
 interface OwnerRouteChildren {
+  OwnerConfiguracoesRoute: typeof OwnerConfiguracoesRoute
   OwnerCuponsRoute: typeof OwnerCuponsRoute
   OwnerExperienciasRoute: typeof OwnerExperienciasRoute
   OwnerReservasRoute: typeof OwnerReservasRoute
@@ -611,6 +631,7 @@ interface OwnerRouteChildren {
 }
 
 const OwnerRouteChildren: OwnerRouteChildren = {
+  OwnerConfiguracoesRoute: OwnerConfiguracoesRoute,
   OwnerCuponsRoute: OwnerCuponsRoute,
   OwnerExperienciasRoute: OwnerExperienciasRoute,
   OwnerReservasRoute: OwnerReservasRoute,

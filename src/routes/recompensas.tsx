@@ -18,7 +18,7 @@ import {
   QrCode,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MobileShell } from "@/components/MobileShell";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
@@ -149,6 +149,12 @@ function Recompensas() {
   const qc = useQueryClient();
   const [copied, setCopied] = useState<string | null>(null);
   const [qrCoupon, setQrCoupon] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (qrCoupon) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+    return () => { document.body.style.overflow = ""; };
+  }, [qrCoupon]);
 
   const { data: points = 0 } = useQuery<number>({
     queryKey: ["points", user?.id],

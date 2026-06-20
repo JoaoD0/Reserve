@@ -36,6 +36,34 @@ function maskCPF(v: string) {
   return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
 }
 
+function validateCPF(cpf: string): boolean {
+  const n = cpf.replace(/\D/g, "");
+  if (n.length !== 11 || /^(\d)\1{10}$/.test(n)) return false;
+  let s = 0;
+  for (let i = 0; i < 9; i++) s += parseInt(n[i]) * (10 - i);
+  let r = (s * 10) % 11;
+  if (r === 10 || r === 11) r = 0;
+  if (r !== parseInt(n[9])) return false;
+  s = 0;
+  for (let i = 0; i < 10; i++) s += parseInt(n[i]) * (11 - i);
+  r = (s * 10) % 11;
+  if (r === 10 || r === 11) r = 0;
+  return r === parseInt(n[10]);
+}
+
+function toISODate(ddmmyyyy: string): string {
+  const p = ddmmyyyy.split("/");
+  if (p.length !== 3 || p[2].length !== 4) return ddmmyyyy;
+  return `${p[2]}-${p[1].padStart(2, "0")}-${p[0].padStart(2, "0")}`;
+}
+
+function fromISODate(iso: string): string {
+  if (!iso || iso.includes("/")) return iso;
+  const p = iso.split("-");
+  if (p.length !== 3) return iso;
+  return `${p[2]}/${p[1]}/${p[0]}`;
+}
+
 function getInitials(name?: string, email?: string): string {
   if (name) {
     const parts = name.trim().split(/\s+/);
@@ -147,7 +175,7 @@ function PerfilDados() {
     const initial = {
       fullName: profile?.full_name ?? user?.user_metadata?.full_name ?? "",
       phone: profile?.phone ?? "",
-      birthDate: profile?.birth_date ?? "",
+      birthDate: fromISODate(profile?.birth_date ?? ""),
       cpf: profile?.cpf ?? "",
       gender: profile?.gender ?? "",
     };
@@ -179,12 +207,14 @@ function PerfilDados() {
   const save = useMutation({
     mutationFn: async () => {
       if (!supabase || !user) throw new Error("Não autenticado");
+      const cpfDigits = cpf.replace(/\D/g, "");
+      if (cpfDigits.length > 0 && !validateCPF(cpf)) throw new Error("CPF inválido");
       const [{ error: profileError }, { error: authError }] = await Promise.all([
         supabase.from("profiles").upsert({
           id: user.id,
           full_name: fullName,
           phone,
-          birth_date: birthDate,
+          birth_date: toISODate(birthDate),
           cpf,
           gender,
           updated_at: new Date().toISOString(),
@@ -322,7 +352,7 @@ function PerfilDados() {
             options={[
               { value: "masculino", label: "Masculino" },
               { value: "feminino", label: "Feminino" },
-              { value: "outro", label: "Prefiro não informar" },
+              { value: "nao_informar", label: "Prefiro não informar" },
             ]}
           />
         </motion.div>

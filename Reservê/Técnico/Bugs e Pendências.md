@@ -21,15 +21,6 @@
 |------|---------|---------|
 | Owner panel sem responsividade mobile | `owner.tsx` | Sidebar fixa 240px — inutilizável em celular |
 | Admin panel sem responsividade mobile | `admin.tsx` | Mesmo problema |
-| Botão voltar do Clube vai para home | `clube/index.tsx` | `navigate({ to: "/" })` em vez de `navigate({ back: true })` |
-| Onboarding não redireciona novos usuários | `onboarding.tsx` | Flag `reserve_onboarded` salva mas nunca lida para redirecionar |
-| Breno ativa globalmente ao clicar em "Conversar" | `perfil.ajuda.tsx` | UX indireta — deveria abrir o chat direto |
-| CPF aceita valores inválidos | `perfil.dados.tsx` | Só mascara, não valida dígito verificador |
-| Data de nascimento salva como string `DD/MM/YYYY` | `perfil.dados.tsx` | Deveria ser ISO `DATE` para queries de idade |
-| QR modal não bloqueia scroll do fundo | `recompensas.tsx` | Background scrollável ao abrir QR |
-| Cor do botão CTA no Club fixada como `color: "#000"` | `clube/$id.tsx` | Pode ter contraste ruim com cores claras de accent |
-| Owner stats "Hoje" inclui canceladas e pendentes | `owner.index.tsx` | Deveria contar só confirmadas |
-| Gênero "outro" confundido com "prefiro não informar" | `perfil.dados.tsx` | `value="outro"` para "Prefiro não informar" — semanticamente errado |
 
 ---
 

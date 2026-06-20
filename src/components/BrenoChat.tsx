@@ -164,6 +164,12 @@ export function BrenoChatEmbedded() {
 export function BrenoChatFloating() {
   const [open, setOpen] = useState(false);
 
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("breno-open", handler);
+    return () => window.removeEventListener("breno-open", handler);
+  }, []);
+
   return (
     <>
       {/* Floating button */}

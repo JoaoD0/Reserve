@@ -153,6 +153,9 @@ function RootComponent() {
       if (event === "PASSWORD_RECOVERY") {
         router.navigate({ to: "/reset-password" });
       }
+      if (event === "SIGNED_IN" && !localStorage.getItem("reserve_onboarded")) {
+        router.navigate({ to: "/onboarding" });
+      }
     });
     return () => subscription.unsubscribe();
   }, [router]);

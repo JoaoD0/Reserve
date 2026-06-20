@@ -64,7 +64,7 @@ function ClubePage() {
         <div className="shimmer pointer-events-none absolute inset-0 opacity-30" />
 
         <button
-          onClick={() => navigate({ to: "/" })}
+          onClick={() => window.history.back()}
           className="relative flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-surface/60 mb-6"
         >
           <ArrowLeft size={16} />

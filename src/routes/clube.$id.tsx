@@ -28,6 +28,15 @@ const TYPE_IMAGES: Record<string, string> = {
   blind_dinner: "https://images.unsplash.com/photo-1530469912745-a215c6b256ea?w=900&q=85",
 };
 
+function accentTextColor(hex: string): string {
+  const h = hex.replace("#", "");
+  if (h.length !== 6) return "#fff";
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6 ? "#000" : "#fff";
+}
+
 const TYPE_ACCENT: Record<string, string> = {
   chef_table: "#D4A853",
   private_dinner: "#C17B7B",
@@ -178,7 +187,7 @@ function ClubeExperiencia() {
           <button
             onClick={() => navigate({ to: "/" })}
             className="w-full h-12 rounded-2xl text-sm font-semibold transition-opacity"
-            style={{ background: accent, color: "#000" }}
+            style={{ background: accent, color: accentTextColor(accent) }}
           >
             Voltar ao início
           </button>

@@ -49,7 +49,7 @@ function OwnerDashboard() {
       const today = new Date().toISOString().slice(0, 10);
       const [pending, todayRes, total] = await Promise.all([
         supabase!.from("reservations").select("*", { count: "exact", head: true }).eq("restaurant_id", restaurantId!).eq("status", "pending"),
-        supabase!.from("reservations").select("*", { count: "exact", head: true }).eq("restaurant_id", restaurantId!).eq("reservation_date", today),
+        supabase!.from("reservations").select("*", { count: "exact", head: true }).eq("restaurant_id", restaurantId!).eq("reservation_date", today).in("status", ["confirmed", "pending"]),
         supabase!.from("reservations").select("*", { count: "exact", head: true }).eq("restaurant_id", restaurantId!),
       ]);
       return {

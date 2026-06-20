@@ -214,8 +214,7 @@ function PerfilAjuda() {
           </p>
           <button
             onClick={() => {
-              if (!brenoGlobal) toggleBreno();
-              window.scrollTo({ top: 0, behavior: "smooth" });
+              window.dispatchEvent(new CustomEvent("breno-open"));
             }}
             className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground font-semibold text-sm"
           >
