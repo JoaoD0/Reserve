@@ -15,7 +15,6 @@
 | Notificações 100% fake | `NotificationsDrawer.tsx`, `perfil.notificacoes.tsx` | Arrays estáticos com restaurantes fictícios; estado "lido" não persiste |
 | "+150 pontos" no histórico | `reservas.tsx` | Número fixo; deveria vir do banco |
 | "Valor gasto: —" sempre vazio | `reservas.tsx` | Precisa de tabela `reservation_items` |
-| "Cidades disponíveis: SP, RJ, Curitiba" no FAQ | `perfil.ajuda.tsx:82` | Hardcoded — vai desatualizar |
 | Admin mostra `restaurant_id` truncado | `admin.index.tsx:129` | Deveria mostrar nome do restaurante (falta join) |
 | Admin reservas sem nome do cliente | `admin.reservas.tsx` | Falta join com `profiles` |
 | `keepLoggedIn` não implementado | `login.tsx:38` | Flag salva no localStorage mas sessão Supabase não muda comportamento |
@@ -31,7 +30,6 @@
 | Botão voltar do Clube vai para home | `clube/index.tsx` | `navigate({ to: "/" })` em vez de `navigate({ back: true })` |
 | Onboarding não redireciona novos usuários | `onboarding.tsx` | Flag `reserve_onboarded` salva mas nunca lida para redirecionar |
 | Breno ativa globalmente ao clicar em "Conversar" | `perfil.ajuda.tsx` | UX indireta — deveria abrir o chat direto |
-| FAQ instrui "Configurações do celular > Aplicativos" | `perfil.ajuda.tsx` | App é web/PWA, não app nativo |
 | CPF aceita valores inválidos | `perfil.dados.tsx` | Só mascara, não valida dígito verificador |
 | Data de nascimento salva como string `DD/MM/YYYY` | `perfil.dados.tsx` | Deveria ser ISO `DATE` para queries de idade |
 | QR modal não bloqueia scroll do fundo | `recompensas.tsx` | Background scrollável ao abrir QR |
@@ -111,3 +109,4 @@ Detectar via `navigator.mediaDevices.enumerateDevices()` se há câmera, e mostr
 | `lang="en"` + textos em inglês no 404/erro | v2.33 | `lang="pt-BR"`, páginas 404 e erro traduzidas |
 | Hero card fixo por ID `"mare-alta"` | v2.34 | Usa primeiro `is_featured` do banco; removido ID hardcoded |
 | Imagens do Clube ignoravam `image_url` do banco | v2.35 | Prioridade: `exp.image_url` → `restaurant.image_url` → Unsplash fallback |
+| Cidades hardcoded no FAQ + instrução de app nativo | v2.36 | Resposta de cidades genérica; notificações corrigidas para web/PWA |

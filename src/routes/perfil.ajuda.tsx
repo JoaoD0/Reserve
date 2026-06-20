@@ -57,7 +57,7 @@ const FAQ = [
     items: [
       {
         q: "Por que não estou recebendo notificações?",
-        a: "Verifique se as notificações estão ativadas em Configurações do celular > Aplicativos > Reservê. Também confira suas preferências em Perfil → Notificações.",
+        a: "Verifique suas preferências em Perfil → Notificações. Por ser um app web, as notificações dependem das permissões do navegador — certifique-se de que o site tem permissão para notificar.",
       },
       {
         q: "Como desativo e-mails de promoções?",
@@ -78,7 +78,7 @@ const FAQ = [
       },
       {
         q: "Em quais cidades o Reservê está disponível?",
-        a: "Atualmente operamos em São Paulo, Rio de Janeiro e Curitiba. Em breve, mais cidades serão adicionadas.",
+        a: "Novos restaurantes e cidades são adicionados regularmente. Explore a home para ver os parceiros disponíveis na sua região.",
       },
       {
         q: "Como um restaurante pode se cadastrar?",
