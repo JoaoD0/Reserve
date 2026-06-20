@@ -16,6 +16,7 @@ type Reservation = {
   time_slot: string;
   party_size: number;
   status: string;
+  profiles?: { full_name: string | null };
 };
 
 type Restaurant = { id: string; name: string };
@@ -52,7 +53,7 @@ function AdminReservas() {
     queryFn: async () => {
       let q = supabase!
         .from("reservations")
-        .select("*")
+        .select("*, profiles(full_name)")
         .order("reservation_date", { ascending: false })
         .order("time_slot", { ascending: false });
       if (filterRestaurant) q = q.eq("restaurant_id", filterRestaurant);
@@ -116,21 +117,22 @@ function AdminReservas() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border/40">
-              {["Restaurante", "Data", "Horário", "Pessoas", "Status", "Alterar status"].map((h) => (
+              {["Cliente", "Restaurante", "Data", "Horário", "Pessoas", "Status", "Alterar status"].map((h) => (
                 <th key={h} className="px-6 py-3 text-left text-[10px] uppercase tracking-[0.15em] text-muted-foreground font-medium">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">Carregando…</td></tr>
+              <tr><td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">Carregando…</td></tr>
             ) : reservations.length === 0 ? (
-              <tr><td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">Nenhuma reserva encontrada</td></tr>
+              <tr><td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">Nenhuma reserva encontrada</td></tr>
             ) : (
               reservations.map((r) => (
                 <tr key={r.id} className="border-b border-border/40 last:border-0 hover:bg-surface/40 transition-colors">
+                  <td className="px-6 py-3.5 text-muted-foreground">{r.profiles?.full_name ?? "—"}</td>
                   <td className="px-6 py-3.5 font-medium">
-                    {restaurantMap[r.restaurant_id] ?? r.restaurant_id?.slice(0, 8) + "…"}
+                    {restaurantMap[r.restaurant_id] ?? "—"}
                   </td>
                   <td className="px-6 py-3.5">{new Date(r.reservation_date + "T12:00:00").toLocaleDateString("pt-BR")}</td>
                   <td className="px-6 py-3.5 text-muted-foreground">{r.time_slot}</td>

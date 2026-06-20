@@ -63,7 +63,7 @@ function AdminDashboard() {
     queryFn: async () => {
       const { data } = await supabase!
         .from("reservations")
-        .select("id, reservation_date, time_slot, party_size, status, restaurant_id, user_id")
+        .select("id, reservation_date, time_slot, party_size, status, restaurants(name), profiles(full_name)")
         .order("reservation_date", { ascending: false })
         .limit(10);
       return data ?? [];
@@ -108,7 +108,7 @@ function AdminDashboard() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border/40">
-              {["Restaurante", "Data", "Horário", "Pessoas", "Status"].map((h) => (
+              {["Cliente", "Restaurante", "Data", "Horário", "Pessoas", "Status"].map((h) => (
                 <th key={h} className="px-6 py-3 text-left text-[10px] uppercase tracking-[0.15em] text-muted-foreground font-medium">
                   {h}
                 </th>
@@ -118,14 +118,15 @@ function AdminDashboard() {
           <tbody>
             {recentReservations.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground text-sm">
+                <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground text-sm">
                   Nenhuma reserva ainda
                 </td>
               </tr>
             ) : (
               recentReservations.map((r: any) => (
                 <tr key={r.id} className="border-b border-border/40 last:border-0 hover:bg-surface/40 transition-colors">
-                  <td className="px-6 py-3.5 text-muted-foreground font-mono text-xs">{r.restaurant_id?.slice(0, 8)}…</td>
+                  <td className="px-6 py-3.5 text-muted-foreground">{(r as any).profiles?.full_name ?? "—"}</td>
+                  <td className="px-6 py-3.5 font-medium">{(r as any).restaurants?.name ?? "—"}</td>
                   <td className="px-6 py-3.5">{new Date(r.reservation_date + "T12:00:00").toLocaleDateString("pt-BR")}</td>
                   <td className="px-6 py-3.5 text-muted-foreground">{r.time_slot}</td>
                   <td className="px-6 py-3.5 text-muted-foreground">{r.party_size}</td>

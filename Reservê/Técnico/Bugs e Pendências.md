@@ -15,8 +15,6 @@
 | Notificações 100% fake | `NotificationsDrawer.tsx`, `perfil.notificacoes.tsx` | Arrays estáticos com restaurantes fictícios; estado "lido" não persiste |
 | "+150 pontos" no histórico | `reservas.tsx` | Número fixo; deveria vir do banco |
 | "Valor gasto: —" sempre vazio | `reservas.tsx` | Precisa de tabela `reservation_items` |
-| Admin mostra `restaurant_id` truncado | `admin.index.tsx:129` | Deveria mostrar nome do restaurante (falta join) |
-| Admin reservas sem nome do cliente | `admin.reservas.tsx` | Falta join com `profiles` |
 | `keepLoggedIn` não implementado | `login.tsx:38` | Flag salva no localStorage mas sessão Supabase não muda comportamento |
 
 ---
@@ -110,3 +108,4 @@ Detectar via `navigator.mediaDevices.enumerateDevices()` se há câmera, e mostr
 | Hero card fixo por ID `"mare-alta"` | v2.34 | Usa primeiro `is_featured` do banco; removido ID hardcoded |
 | Imagens do Clube ignoravam `image_url` do banco | v2.35 | Prioridade: `exp.image_url` → `restaurant.image_url` → Unsplash fallback |
 | Cidades hardcoded no FAQ + instrução de app nativo | v2.36 | Resposta de cidades genérica; notificações corrigidas para web/PWA |
+| Admin UUID truncado + sem nome do cliente | v2.37 | Join com `restaurants(name)` e `profiles(full_name)` nos dois painéis admin |
