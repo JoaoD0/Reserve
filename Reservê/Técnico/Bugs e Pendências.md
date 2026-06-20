@@ -17,10 +17,7 @@
 
 ## 🟠 UX a melhorar
 
-| Item | Arquivo | Detalhe |
-|------|---------|---------|
-| Owner panel sem responsividade mobile | `owner.tsx` | Sidebar fixa 240px — inutilizável em celular |
-| Admin panel sem responsividade mobile | `admin.tsx` | Mesmo problema |
+*(nenhuma pendência de UX)*
 
 ---
 
