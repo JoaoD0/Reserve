@@ -633,14 +633,14 @@ function RestaurantPage() {
                       return (
                         <button
                           key={slot}
-                          disabled={confirmed}
                           onClick={() => {
+                            if (confirmed) { setBookedModal(true); return; }
                             if (pending) { setPendingWarningSlot(slot); return; }
                             setSelectedSlot(slot);
                           }}
                           className={`relative rounded-xl border py-2.5 text-xs transition-colors ${
                             confirmed
-                              ? "border-border/40 bg-surface/40 text-muted-foreground/30 line-through cursor-not-allowed"
+                              ? "border-border/40 bg-surface/40 text-muted-foreground/30 line-through cursor-pointer"
                               : pending
                               ? "border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium"
                               : active

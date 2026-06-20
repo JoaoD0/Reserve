@@ -34,6 +34,7 @@
 - [[Decisões Técnicas]] — por que cada escolha foi feita
 - [[Bugs e Pendências]] — bugs ativos, SQL pendente, melhorias
 - [[Emails e Notificações]] — dois sistemas de email, SMTP, Resend, templates, configuração Supabase
+- [[Localização e Navegação]] — estratégia de mapa embutido + deep link para GPS nativo (Google Maps / Apple Maps / Waze)
 
 ---
 
