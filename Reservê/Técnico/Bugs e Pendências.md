@@ -15,7 +15,6 @@
 | Notificações 100% fake | `NotificationsDrawer.tsx`, `perfil.notificacoes.tsx` | Arrays estáticos com restaurantes fictícios; estado "lido" não persiste |
 | "+150 pontos" no histórico | `reservas.tsx` | Número fixo; deveria vir do banco |
 | "Valor gasto: —" sempre vazio | `reservas.tsx` | Precisa de tabela `reservation_items` |
-| Imagens do Clube hardcoded no Unsplash | `clube/index.tsx:23` | `TYPE_IMAGES` mapeia tipos para URLs Unsplash que ignoram `image_url` do banco |
 | "Cidades disponíveis: SP, RJ, Curitiba" no FAQ | `perfil.ajuda.tsx:82` | Hardcoded — vai desatualizar |
 | Admin mostra `restaurant_id` truncado | `admin.index.tsx:129` | Deveria mostrar nome do restaurante (falta join) |
 | Admin reservas sem nome do cliente | `admin.reservas.tsx` | Falta join com `profiles` |
@@ -111,3 +110,4 @@ Detectar via `navigator.mediaDevices.enumerateDevices()` se há câmera, e mostr
 | Horário de experiência aceita texto livre | v2.32 | `type="time"` adicionado ao campo; aceita apenas HH:MM |
 | `lang="en"` + textos em inglês no 404/erro | v2.33 | `lang="pt-BR"`, páginas 404 e erro traduzidas |
 | Hero card fixo por ID `"mare-alta"` | v2.34 | Usa primeiro `is_featured` do banco; removido ID hardcoded |
+| Imagens do Clube ignoravam `image_url` do banco | v2.35 | Prioridade: `exp.image_url` → `restaurant.image_url` → Unsplash fallback |

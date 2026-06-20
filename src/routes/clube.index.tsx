@@ -105,7 +105,7 @@ function ClubePage() {
         ) : (
           (experiences as any[]).map((exp, i) => {
             const restaurant = exp.restaurants as any;
-            const img = TYPE_IMAGES[exp.type] ?? restaurant?.image_url;
+            const img = exp.image_url ?? restaurant?.image_url ?? TYPE_IMAGES[exp.type];
             const accent = TYPE_ACCENT[exp.type] ?? "#D4A853";
             const label = TYPE_LABELS[exp.type] ?? exp.type;
 
