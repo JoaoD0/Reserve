@@ -221,8 +221,12 @@ function PerfilDados() {
       if (updateErr) throw updateErr;
       return publicUrl;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["profile", user?.id] });
+    onSuccess: (publicUrl) => {
+      qc.setQueryData(["profile", user?.id], (old: any) => ({
+        ...(old ?? {}),
+        avatar_url: publicUrl,
+        avatarUrl: publicUrl,
+      }));
       toast.success("Foto atualizada!");
     },
     onError: () => toast.error("Erro ao enviar foto."),
@@ -254,10 +258,15 @@ function PerfilDados() {
           <div className="relative">
             <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-primary via-gold to-primary opacity-70 blur-md" />
             <div className="relative flex h-24 w-24 items-center justify-center rounded-full border-2 border-background bg-surface-elevated overflow-hidden">
-              {avatarUrl
-                ? <img src={avatarUrl} alt="avatar" className="h-full w-full object-cover" />
-                : <span className="font-display text-3xl text-gradient-gold">{initials}</span>
-              }
+              <span className="font-display text-3xl text-gradient-gold">{initials}</span>
+              {avatarUrl && (
+                <img
+                  src={avatarUrl}
+                  alt="avatar"
+                  className="absolute inset-0 h-full w-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+              )}
             </div>
             <button
               onClick={() => fileInputRef.current?.click()}

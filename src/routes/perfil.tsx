@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { MobileShell } from "@/components/MobileShell";
+import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useFavorites } from "@/lib/hooks/useFavorites";
 import { supabase } from "@/lib/supabase";
@@ -96,8 +97,12 @@ function Perfil() {
       if (updateErr) throw updateErr;
       return publicUrl;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["profile", user?.id] });
+    onSuccess: (publicUrl) => {
+      qc.setQueryData(["profile", user?.id], (old: any) => ({
+        ...(old ?? { points: 0 }),
+        avatarUrl: publicUrl,
+        avatar_url: publicUrl,
+      }));
       toast.success("Foto atualizada!");
     },
     onError: () => toast.error("Erro ao enviar foto."),
@@ -146,14 +151,7 @@ function Perfil() {
   return (
     <MobileShell>
       <header className="flex items-center px-5 pt-6">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-            <span className="font-display text-sm font-bold text-primary-foreground">R</span>
-          </div>
-          <span className="font-display text-base font-semibold tracking-tight text-foreground">
-            Reservê
-          </span>
-        </div>
+        <Logo size={28} />
       </header>
 
       {/* Profile header */}
@@ -167,10 +165,14 @@ function Perfil() {
           <div className="relative">
             <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-primary via-gold to-primary opacity-70 blur-md" />
             <div className="relative flex h-24 w-24 items-center justify-center rounded-full border-2 border-background bg-surface-elevated overflow-hidden">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt={fullName} className="h-full w-full object-cover" />
-              ) : (
-                <span className="font-display text-3xl text-gradient-gold">{initials}</span>
+              <span className="font-display text-3xl text-gradient-gold">{initials}</span>
+              {avatarUrl && (
+                <img
+                  src={avatarUrl}
+                  alt={fullName}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
               )}
             </div>
             <button
