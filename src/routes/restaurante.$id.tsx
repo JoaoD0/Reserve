@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
+
+const MapView = lazy(() => import("@/components/MapView").then((m) => ({ default: m.MapView })));
 import {
   ArrowLeft,
   Share2,
@@ -210,6 +212,101 @@ function RestaurantSkeleton() {
         </div>
       </div>
     </MobileShell>
+  );
+}
+
+/* ─── Location section ────────────────────────────────────────── */
+
+function LocationSection({
+  lat, lng, name, address,
+}: {
+  lat?: number | null;
+  lng?: number | null;
+  name: string;
+  address?: string | null;
+}) {
+  const [mapOpen, setMapOpen] = useState(false);
+  const hasCoords = !!(lat && lng);
+
+  return (
+    <>
+      <div className="mt-5 px-5">
+        <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
+          {/* Mini map preview */}
+          {hasCoords && (
+            <button
+              onClick={() => setMapOpen(true)}
+              className="relative h-40 w-full overflow-hidden"
+            >
+              <iframe
+                src={`https://www.openstreetmap.org/export/embed.html?bbox=${lng! - 0.003},${lat! - 0.003},${lng! + 0.003},${lat! + 0.003}&layer=mapnik&marker=${lat},${lng}`}
+                title="Prévia do mapa"
+                className="pointer-events-none h-full w-full border-0 scale-[1.02]"
+                loading="lazy"
+              />
+              {/* Dark overlay + label */}
+              <div className="absolute inset-0 bg-background/30" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="flex items-center gap-2 rounded-full border border-white/20 bg-background/70 px-4 py-2 backdrop-blur-sm">
+                  <Navigation size={13} className="text-primary" />
+                  <span className="text-[12px] font-semibold text-foreground">Abrir GPS</span>
+                </div>
+              </div>
+            </button>
+          )}
+
+          {/* Address row */}
+          <div className="flex items-center justify-between gap-3 p-4">
+            <div className="flex min-w-0 items-start gap-2">
+              <MapPin size={13} className="mt-0.5 shrink-0 text-primary" />
+              <p className="text-[12px] leading-relaxed text-muted-foreground">
+                {address ?? "Ver localização"}
+              </p>
+            </div>
+            <button
+              onClick={() => setMapOpen(true)}
+              className="flex shrink-0 items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-[11px] font-semibold text-primary-foreground"
+            >
+              <Navigation size={11} /> Como chegar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Fullscreen GPS modal */}
+      <AnimatePresence>
+        {mapOpen && hasCoords && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200]"
+          >
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 32 }}
+              className="h-full w-full"
+            >
+              <Suspense fallback={
+                <div className="flex h-full items-center justify-center bg-background">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                </div>
+              }>
+                <MapView
+                  lat={lat!}
+                  lng={lng!}
+                  name={name}
+                  address={address ?? undefined}
+                  onClose={() => setMapOpen(false)}
+                />
+              </Suspense>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
@@ -467,38 +564,12 @@ function RestaurantPage() {
 
       {/* Localização */}
       {(restaurant.latitude || restaurant.address) && (
-        <div className="mt-5 px-5">
-          <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
-            {restaurant.latitude && restaurant.longitude && (
-              <iframe
-                src={`https://www.openstreetmap.org/export/embed.html?bbox=${restaurant.longitude - 0.005},${restaurant.latitude - 0.005},${restaurant.longitude + 0.005},${restaurant.latitude + 0.005}&layer=mapnik&marker=${restaurant.latitude},${restaurant.longitude}`}
-                title={`Localização de ${restaurant.name}`}
-                className="h-44 w-full border-0"
-                loading="lazy"
-              />
-            )}
-            <div className="flex items-center justify-between gap-3 p-4">
-              <div className="flex min-w-0 items-start gap-2">
-                <MapPin size={13} className="mt-0.5 shrink-0 text-primary" />
-                <p className="text-[12px] leading-relaxed text-muted-foreground">
-                  {restaurant.address ?? restaurant.location}
-                </p>
-              </div>
-              <a
-                href={
-                  restaurant.latitude && restaurant.longitude
-                    ? getDirectionsUrl(restaurant.latitude, restaurant.longitude, restaurant.name)
-                    : getDirectionsUrlFromAddress(restaurant.address ?? restaurant.location ?? "", restaurant.name)
-                }
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex shrink-0 items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-[11px] font-semibold text-primary-foreground"
-              >
-                <Navigation size={11} /> Como chegar
-              </a>
-            </div>
-          </div>
-        </div>
+        <LocationSection
+          lat={restaurant.latitude}
+          lng={restaurant.longitude}
+          name={restaurant.name}
+          address={restaurant.address ?? restaurant.location}
+        />
       )}
 
       {/* Tabs */}
