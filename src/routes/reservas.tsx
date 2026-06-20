@@ -36,6 +36,7 @@ type Dish = { name: string; price: string; description?: string };
 
 type Reservation = {
   id?: string;
+  restaurantId?: string;
   reservationDate?: string; // ISO format yyyy-mm-dd, used for DB updates
   name: string;
   img: string;
@@ -98,6 +99,7 @@ function Reservas() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("Próximas");
   const [modal, setModal] = useState<Modal>(null);
+  const [rescheduling, setRescheduling] = useState(false);
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
 
   /* ── Real reservations from Supabase ── */
@@ -115,6 +117,7 @@ function Reservas() {
       if (error) throw error;
       return (data ?? []).map((r: any): Reservation => ({
         id: r.id,
+        restaurantId: r.restaurant_id,
         reservationDate: r.reservation_date,
         name: r.restaurants?.name ?? "Restaurante",
         img: r.restaurants?.image_url ?? sushiImg,
@@ -201,14 +204,35 @@ function Reservas() {
   };
 
   const reschedule = async (r: Reservation, isoDate: string, time: string) => {
-    if (r.id && supabase) {
-      await supabase
+    if (!r.id || !supabase) { setModal(null); return; }
+    setRescheduling(true);
+
+    // Check if target slot is already taken by another reservation
+    if (r.restaurantId) {
+      const { data: conflicts } = await supabase
         .from("reservations")
-        .update({ reservation_date: isoDate, time_slot: time })
-        .eq("id", r.id);
-      qc.invalidateQueries({ queryKey: ["userReservations", user?.id] });
+        .select("id")
+        .eq("restaurant_id", r.restaurantId)
+        .eq("reservation_date", isoDate)
+        .eq("time_slot", time)
+        .in("status", ["confirmed", "pending"])
+        .neq("id", r.id);
+
+      if (conflicts && conflicts.length > 0) {
+        setRescheduling(false);
+        toast.error("Horário indisponível.", { description: "Escolha outro horário ou data." });
+        return;
+      }
     }
+
+    await supabase
+      .from("reservations")
+      .update({ reservation_date: isoDate, time_slot: time })
+      .eq("id", r.id);
+    qc.invalidateQueries({ queryKey: ["userReservations", user?.id] });
+    setRescheduling(false);
     setModal(null);
+    toast.success("Reserva reagendada.");
   };
 
   /* ── Auth gate ── */
@@ -420,7 +444,8 @@ function Reservas() {
         {modal?.kind === "reschedule" && (
           <RescheduleModal
             r={modal.r}
-            onClose={() => setModal(null)}
+            loading={rescheduling}
+            onClose={() => !rescheduling && setModal(null)}
             onConfirm={(isoDate, t) => reschedule(modal.r, isoDate, t)}
           />
         )}
@@ -784,10 +809,12 @@ const TIMES = ["19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00"];
 
 function RescheduleModal({
   r,
+  loading = false,
   onClose,
   onConfirm,
 }: {
   r: Reservation;
+  loading?: boolean;
   onClose: () => void;
   onConfirm: (date: string, time: string) => void;
 }) {
@@ -886,9 +913,10 @@ function RescheduleModal({
 
         <button
           onClick={() => onConfirm(isoDate, time)}
-          className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground"
+          disabled={loading}
+          className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
         >
-          Confirmar nova data <ChevronRight size={15} />
+          {loading ? "Verificando…" : <>Confirmar nova data <ChevronRight size={15} /></>}
         </button>
       </div>
     </ModalShell>

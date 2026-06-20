@@ -4,11 +4,9 @@
 
 ## 🔴 Bugs funcionais
 
-| Bug | Arquivo | Detalhe |
-|-----|---------|---------|
-| `bookedModal` nunca abre | `restaurante.$id.tsx` | State existe, modal existe, mas nada chama `setBookedModal(true)` — código morto |
-| Reagendamento sem verificar disponibilidade | `reservas.tsx` | `reschedule()` atualiza direto no banco sem checar se horário está livre |
-| Horário de experiência aceita texto livre | `owner.experiencias.tsx` | Campo sem `type="time"`, aceita "oito horas" |
+| Bug                                       | Arquivo                  | Detalhe                                              |
+| ----------------------------------------- | ------------------------ | ---------------------------------------------------- |
+| Horário de experiência aceita texto livre | `owner.experiencias.tsx` | Campo sem `type="time"`, aceita "oito horas"         |
 
 ---
 
@@ -112,3 +110,5 @@ Detectar via `navigator.mediaDevices.enumerateDevices()` se há câmera, e mostr
 | Footer "Selecione um horário" no step 1 | v2.24 | Label e `disabled` do bottom bar corrigidos por step |
 | `window.location.replace` pós-login owner/admin | v2.24 | Substituído por `navigate()` do TanStack Router |
 | Versão "v1.0" no perfil | v2.24 | Atualizado para v2.24 |
+| `bookedModal` nunca abre | v2.28 | Slots confirmados tornam-se clicáveis; `setBookedModal(true)` no onClick |
+| Reagendamento sem verificar disponibilidade | v2.31 | `reschedule()` agora consulta conflitos antes de atualizar; toast de erro se slot ocupado |
