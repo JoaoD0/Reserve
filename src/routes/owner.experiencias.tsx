@@ -154,7 +154,7 @@ function OwnerExperiencias() {
                     <input value={form.event_date} onChange={f("event_date")} type="date" className={inputCls} />
                   </Field>
                   <Field label="Horário">
-                    <input value={form.event_time} onChange={f("event_time")} placeholder="20:00" className={inputCls} />
+                    <input value={form.event_time} onChange={f("event_time")} type="time" className={inputCls} />
                   </Field>
                   <Field label="Preço por pessoa (R$)" className="col-span-2">
                     <input value={form.price_per_person} onChange={f("price_per_person")} type="number" placeholder="350" className={inputCls} />

@@ -4,9 +4,7 @@
 
 ## 🔴 Bugs funcionais
 
-| Bug                                       | Arquivo                  | Detalhe                                              |
-| ----------------------------------------- | ------------------------ | ---------------------------------------------------- |
-| Horário de experiência aceita texto livre | `owner.experiencias.tsx` | Campo sem `type="time"`, aceita "oito horas"         |
+*(nenhum bug funcional pendente)*
 
 ---
 
@@ -112,3 +110,4 @@ Detectar via `navigator.mediaDevices.enumerateDevices()` se há câmera, e mostr
 | Versão "v1.0" no perfil | v2.24 | Atualizado para v2.24 |
 | `bookedModal` nunca abre | v2.28 | Slots confirmados tornam-se clicáveis; `setBookedModal(true)` no onClick |
 | Reagendamento sem verificar disponibilidade | v2.31 | `reschedule()` agora consulta conflitos antes de atualizar; toast de erro se slot ocupado |
+| Horário de experiência aceita texto livre | v2.32 | `type="time"` adicionado ao campo; aceita apenas HH:MM |
