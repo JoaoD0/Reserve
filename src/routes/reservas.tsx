@@ -12,6 +12,7 @@ import {
   Heart,
   X,
   MapPin,
+  Navigation,
   Phone,
   Star,
   Share2,
@@ -21,6 +22,7 @@ import {
   ChevronRight,
   Sparkles,
 } from "lucide-react";
+import { getDirectionsUrlFromAddress } from "@/lib/utils/location";
 import { MobileShell } from "@/components/MobileShell";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -725,7 +727,19 @@ function DetailsModal({ r, onClose, onConfirmPresence }: { r: Reservation; onClo
         </div>
 
         <div className="mt-5 space-y-2.5">
-          <InfoLine icon={<MapPin size={13} />} label={r.address} />
+          <div className="flex items-center justify-between gap-3">
+            <InfoLine icon={<MapPin size={13} />} label={r.address} />
+            {r.address && (
+              <a
+                href={getDirectionsUrlFromAddress(r.address, r.name)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex shrink-0 items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-[11px] font-medium text-primary"
+              >
+                <Navigation size={11} /> Como chegar
+              </a>
+            )}
+          </div>
           <InfoLine icon={<Phone size={13} />} label={r.phone} />
         </div>
 

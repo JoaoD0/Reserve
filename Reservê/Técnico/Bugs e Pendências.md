@@ -33,6 +33,15 @@
 
 ---
 
+## 🗺️ Mapa / Localização (v2.40)
+
+- Tela do restaurante: mapa OSM embutido + botão "Como chegar" (Google Maps / Apple Maps por OS)
+- Modal de detalhes de reserva: botão "Como chegar" via endereço
+- `/owner/configuracoes`: owner preenche CEP → ViaCEP busca endereço → Nominatim geocoda lat/lng automaticamente
+- SQL aplicado: `latitude NUMERIC(10,7)`, `longitude NUMERIC(10,7)` em `restaurants`
+
+---
+
 ## 🔵 Melhorias de produto (backlog)
 
 - **Busca funcional na home** — filtrar restaurantes por nome/culinária em tempo real

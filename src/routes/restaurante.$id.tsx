@@ -7,6 +7,7 @@ import {
   Star,
   Clock,
   MapPin,
+  Navigation,
   ChevronRight,
   ChevronLeft,
   Plus,
@@ -19,6 +20,7 @@ import {
   Phone,
   Heart,
 } from "lucide-react";
+import { getDirectionsUrl, getDirectionsUrlFromAddress } from "@/lib/utils/location";
 import { MobileShell } from "@/components/MobileShell";
 import { useQuery } from "@tanstack/react-query";
 import { useRestaurant } from "@/lib/hooks/useRestaurant";
@@ -462,6 +464,42 @@ function RestaurantPage() {
 
         <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{restaurant.description}</p>
       </div>
+
+      {/* Localização */}
+      {(restaurant.latitude || restaurant.address) && (
+        <div className="mt-5 px-5">
+          <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
+            {restaurant.latitude && restaurant.longitude && (
+              <iframe
+                src={`https://www.openstreetmap.org/export/embed.html?bbox=${restaurant.longitude - 0.005},${restaurant.latitude - 0.005},${restaurant.longitude + 0.005},${restaurant.latitude + 0.005}&layer=mapnik&marker=${restaurant.latitude},${restaurant.longitude}`}
+                title={`Localização de ${restaurant.name}`}
+                className="h-44 w-full border-0"
+                loading="lazy"
+              />
+            )}
+            <div className="flex items-center justify-between gap-3 p-4">
+              <div className="flex min-w-0 items-start gap-2">
+                <MapPin size={13} className="mt-0.5 shrink-0 text-primary" />
+                <p className="text-[12px] leading-relaxed text-muted-foreground">
+                  {restaurant.address ?? restaurant.location}
+                </p>
+              </div>
+              <a
+                href={
+                  restaurant.latitude && restaurant.longitude
+                    ? getDirectionsUrl(restaurant.latitude, restaurant.longitude, restaurant.name)
+                    : getDirectionsUrlFromAddress(restaurant.address ?? restaurant.location ?? "", restaurant.name)
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex shrink-0 items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-[11px] font-semibold text-primary-foreground"
+              >
+                <Navigation size={11} /> Como chegar
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="mt-5 px-5">

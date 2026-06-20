@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, useNavigate, Link, useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarCheck, LayoutDashboard, LogOut, Sparkles, Ticket } from "lucide-react";
+import { CalendarCheck, LayoutDashboard, LogOut, Settings, Sparkles, Ticket } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { Logo } from "@/components/Logo";
@@ -15,6 +15,7 @@ const NAV = [
   { to: "/owner/reservas", label: "Reservas", icon: CalendarCheck, exact: false },
   { to: "/owner/experiencias", label: "Club", icon: Sparkles, exact: false },
   { to: "/owner/cupons", label: "Cupons", icon: Ticket, exact: false },
+  { to: "/owner/configuracoes", label: "Configurações", icon: Settings, exact: false },
 ] as const;
 
 function initials(name: string) {
