@@ -15,7 +15,6 @@
 | Notificações 100% fake | `NotificationsDrawer.tsx`, `perfil.notificacoes.tsx` | Arrays estáticos com restaurantes fictícios; estado "lido" não persiste |
 | "+150 pontos" no histórico | `reservas.tsx` | Número fixo; deveria vir do banco |
 | "Valor gasto: —" sempre vazio | `reservas.tsx` | Precisa de tabela `reservation_items` |
-| `keepLoggedIn` não implementado | `login.tsx:38` | Flag salva no localStorage mas sessão Supabase não muda comportamento |
 
 ---
 
@@ -109,3 +108,4 @@ Detectar via `navigator.mediaDevices.enumerateDevices()` se há câmera, e mostr
 | Imagens do Clube ignoravam `image_url` do banco | v2.35 | Prioridade: `exp.image_url` → `restaurant.image_url` → Unsplash fallback |
 | Cidades hardcoded no FAQ + instrução de app nativo | v2.36 | Resposta de cidades genérica; notificações corrigidas para web/PWA |
 | Admin UUID truncado + sem nome do cliente | v2.37 | Join com `restaurants(name)` e `profiles(full_name)` nos dois painéis admin |
+| `keepLoggedIn` sem efeito real | v2.38 | Root verifica flag no boot: se `false` e sem `sessionStorage`, faz signOut |

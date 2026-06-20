@@ -140,6 +140,15 @@ function RootComponent() {
 
   useEffect(() => {
     if (!supabase) return;
+
+    // If user didn't check "manter conectado" and this is a new browser session
+    // (sessionStorage is cleared on browser close), sign them out automatically
+    const keepLoggedIn = localStorage.getItem("reserve.keepLoggedIn");
+    const sessionActive = sessionStorage.getItem("reserve.sessionActive");
+    if (keepLoggedIn === "false" && !sessionActive) {
+      supabase.auth.signOut();
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         router.navigate({ to: "/reset-password" });
