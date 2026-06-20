@@ -151,7 +151,21 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-      <Toaster position="top-center" theme="dark" richColors />
+      <Toaster
+        position="top-center"
+        theme="dark"
+        gap={8}
+        toastOptions={{
+          style: {
+            background: "oklch(0.235 0.016 60)",
+            border: "1px solid oklch(0.30 0.014 60 / 60%)",
+            color: "oklch(0.96 0.012 80)",
+            borderRadius: "0.875rem",
+            fontFamily: "Inter, system-ui, sans-serif",
+            fontSize: "13px",
+          },
+        }}
+      />
       <BrenoGlobal />
     </QueryClientProvider>
   );

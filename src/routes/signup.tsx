@@ -63,7 +63,7 @@ function SignupPage() {
       return;
     }
     if (data.session) {
-      toast.success("Conta criada! Bem-vindo ao Reservê.");
+      toast.success("Conta criada.");
       navigate({ to: redirect || "/perfil" });
       return;
     }
@@ -75,7 +75,7 @@ function SignupPage() {
     if (!emailSent || !supabase) return;
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
-        toast.success("E-mail confirmado! Bem-vindo ao Reservê.");
+        toast.success("Conta ativada.");
         navigate({ to: redirect || "/perfil" });
       }
     });

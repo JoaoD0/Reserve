@@ -197,7 +197,7 @@ function PerfilDados() {
     onSuccess: () => {
       savedRef.current = { fullName, phone, birthDate, cpf, gender };
       qc.invalidateQueries({ queryKey: ["profile", user?.id] });
-      toast.success("Dados atualizados ✅");
+      toast.success("Salvo.");
       navigate({ to: "/perfil" });
     },
     onError: (e) => toast.error("Erro ao salvar", { description: (e as Error).message }),

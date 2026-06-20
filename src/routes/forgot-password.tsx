@@ -48,7 +48,7 @@ function ForgotPassword() {
     if (!isSupabaseConfigured || !supabase) {
       await new Promise((r) => setTimeout(r, 1000));
       setSent(true);
-      toast.success("Link de recuperação enviado!");
+      toast.success("E-mail enviado.");
       setLoading(false);
       return;
     }
@@ -59,13 +59,13 @@ function ForgotPassword() {
     setLoading(false);
     if (error) {
       if (error.message.includes("rate limit") || error.status === 429) {
-        toast.error("Muitas tentativas. Aguarde alguns minutos e tente novamente.");
+        toast.error("Aguarde alguns minutos antes de tentar novamente.");
       } else {
         toast.error("Não foi possível enviar o e-mail.", { description: error.message });
       }
     } else {
       setSent(true);
-      toast.success("Link de recuperação enviado!");
+      toast.success("E-mail enviado.");
     }
   }
 

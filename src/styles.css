@@ -105,6 +105,34 @@
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* ── Sonner toasts — paleta Reservê ── */
+[data-sonner-toast][data-type="success"] {
+  border-color: oklch(0.72 0.16 55 / 45%) !important;
+}
+[data-sonner-toast][data-type="success"] [data-icon] {
+  color: oklch(0.72 0.16 55);
+}
+[data-sonner-toast][data-type="error"] {
+  border-color: oklch(0.62 0.22 28 / 55%) !important;
+}
+[data-sonner-toast][data-type="error"] [data-icon] {
+  color: oklch(0.62 0.22 28);
+}
+[data-sonner-toast][data-type="warning"] {
+  border-color: oklch(0.82 0.13 80 / 50%) !important;
+}
+[data-sonner-toast][data-type="warning"] [data-icon] {
+  color: oklch(0.82 0.13 80);
+}
+[data-sonner-toast] [data-description] {
+  color: oklch(0.68 0.018 75) !important;
+  font-size: 11px !important;
+}
+[data-sonner-toast] [data-close-button] {
+  background: oklch(0.26 0.018 60) !important;
+  border-color: oklch(0.30 0.014 60 / 60%) !important;
+}
+
 /* Subtle glow */
 .glow-primary {
   box-shadow: 0 10px 40px -10px oklch(0.72 0.16 55 / 0.45);

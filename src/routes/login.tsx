@@ -31,7 +31,7 @@ function LoginPage() {
     const { error, data } = await supabase!.auth.signInWithPassword(parsed.data);
     setLoading(false);
     if (error?.message?.includes("Email not confirmed")) {
-      toast.error("Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.");
+      toast.error("Confirme seu e-mail antes de entrar.");
       return;
     }
     if (error) { toast.error("Não foi possível entrar", { description: error.message }); return; }

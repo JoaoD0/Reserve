@@ -19,10 +19,10 @@ function AuthCallback() {
       clearTimeout(timeout);
       subscription.unsubscribe();
       if (ok) {
-        toast.success("E-mail confirmado! Bem-vindo ao Reservê.");
+        toast.success("Conta ativada.");
         navigate({ to: "/perfil" });
       } else {
-        toast.error("Link inválido ou expirado. Tente fazer login.");
+        toast.error("Link expirado. Tente fazer login.");
         navigate({ to: "/login", search: { redirect: "/" } });
       }
     }
