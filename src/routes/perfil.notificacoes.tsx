@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Bell, Tag, MapPin, Sparkles, Megaphone } from "lucide-react";
+import { ArrowLeft, Bell, Tag, MapPin, Sparkles } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MobileShell } from "@/components/MobileShell";
@@ -25,40 +24,31 @@ type Prefs = Record<PrefKey, boolean>;
 
 const DEFAULT_PREFS: Prefs = { reserva: true, promocoes: true, novos: false, novidades: false };
 
-const SAMPLE_NOTIFICATIONS = [
-  {
-    id: "1",
-    Icon: Bell,
-    title: "Reserva confirmada!",
-    description: "Sua reserva no Cipriani está confirmada para amanhã às 20h.",
-    time: "há 5 min",
-    read: false,
-  },
-  {
-    id: "2",
-    Icon: Tag,
-    title: "Oferta exclusiva",
-    description: "20% de desconto no Fasano esta semana para membros Gold.",
-    time: "há 2h",
-    read: false,
-  },
-  {
-    id: "3",
-    Icon: MapPin,
-    title: "Novo restaurante",
-    description: "L'Amour Bistrot acaba de entrar no Reservê. Confira!",
-    time: "há 1 dia",
-    read: true,
-  },
-  {
-    id: "4",
-    Icon: Megaphone,
-    title: "Avalie sua última visita",
-    description: "Como foi sua experiência no Maré Alta? Deixe uma avaliação.",
-    time: "há 3 dias",
-    read: true,
-  },
-];
+type Notif = {
+  id: string;
+  title: string;
+  body: string | null;
+  type: string;
+  read: boolean;
+  created_at: string;
+};
+
+const TYPE_STYLE: Record<string, { Icon: typeof Bell; bg: string }> = {
+  reservation:    { Icon: Bell,     bg: "bg-primary/10 text-primary" },
+  promotion:      { Icon: Tag,      bg: "bg-gold/10 text-gold" },
+  new_restaurant: { Icon: MapPin,   bg: "bg-emerald-500/10 text-emerald-400" },
+  general:        { Icon: Sparkles, bg: "bg-violet-500/10 text-violet-400" },
+};
+
+function formatTime(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 2) return "agora";
+  if (mins < 60) return `há ${mins}min`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `há ${hours}h`;
+  return `há ${Math.floor(hours / 24)}d`;
+}
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -117,10 +107,38 @@ function PerfilNotificacoes() {
     onError: () => toast.error("Erro ao atualizar preferências"),
   });
 
-  const [readIds, setReadIds] = useState<Set<string>>(
-    new Set(SAMPLE_NOTIFICATIONS.filter((n) => n.read).map((n) => n.id)),
-  );
-  const unreadCount = SAMPLE_NOTIFICATIONS.filter((n) => !readIds.has(n.id)).length;
+  const { data: notifs = [] } = useQuery<Notif[]>({
+    queryKey: ["notifications", user?.id],
+    queryFn: async () => {
+      if (!supabase || !user) return [];
+      const { data } = await supabase
+        .from("notifications")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      return (data ?? []) as Notif[];
+    },
+    enabled: !!user && !!supabase,
+  });
+
+  const markRead = useMutation({
+    mutationFn: async (id: string) => {
+      if (!supabase || !user) return;
+      await supabase.from("notifications").update({ read: true }).eq("id", id).eq("user_id", user.id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications", user?.id] }),
+  });
+
+  const markAllRead = useMutation({
+    mutationFn: async () => {
+      if (!supabase || !user) return;
+      await supabase.from("notifications").update({ read: true }).eq("user_id", user.id).eq("read", false);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications", user?.id] }),
+  });
+
+  const unreadCount = notifs.filter((n) => !n.read).length;
 
   return (
     <MobileShell>
@@ -134,7 +152,7 @@ function PerfilNotificacoes() {
         <h1 className="font-display text-lg flex-1">Notificações</h1>
         {unreadCount > 0 && (
           <button
-            onClick={() => setReadIds(new Set(SAMPLE_NOTIFICATIONS.map((n) => n.id)))}
+            onClick={() => markAllRead.mutate()}
             className="text-xs text-primary font-medium"
           >
             Marcar todas como lidas
@@ -180,40 +198,51 @@ function PerfilNotificacoes() {
           <h2 className="text-xs uppercase tracking-widest text-muted-foreground mb-3 px-1">
             Recentes
           </h2>
-          <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
-            {SAMPLE_NOTIFICATIONS.map((n, i) => {
-              const Icon = n.Icon;
-              const isRead = readIds.has(n.id);
-              return (
-                <motion.button
-                  key={n.id}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setReadIds((s) => new Set([...s, n.id]))}
-                  className={`flex w-full items-start gap-3 px-4 py-3.5 text-left transition-colors ${
-                    i < SAMPLE_NOTIFICATIONS.length - 1 ? "border-b border-border/60" : ""
-                  } ${!isRead ? "bg-primary/5" : ""}`}
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Icon size={15} />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className={`text-sm ${!isRead ? "font-bold" : "font-medium"}`}>
-                        {n.title}
-                      </p>
-                      {!isRead && (
-                        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
+          {notifs.length === 0 ? (
+            <div className="rounded-2xl border border-border/60 bg-card py-12 text-center">
+              <p className="text-3xl mb-2">🔔</p>
+              <p className="text-sm text-muted-foreground">Nenhuma notificação ainda</p>
+            </div>
+          ) : (
+            <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
+              {notifs.map((n, i) => {
+                const style = TYPE_STYLE[n.type] ?? TYPE_STYLE.general;
+                const Icon = style.Icon;
+                return (
+                  <motion.button
+                    key={n.id}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => !n.read && markRead.mutate(n.id)}
+                    className={`flex w-full items-start gap-3 px-4 py-3.5 text-left transition-colors ${
+                      i < notifs.length - 1 ? "border-b border-border/60" : ""
+                    } ${!n.read ? "bg-primary/5" : ""}`}
+                  >
+                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${style.bg}`}>
+                      <Icon size={15} />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className={`text-sm ${!n.read ? "font-bold" : "font-medium"}`}>
+                          {n.title}
+                        </p>
+                        {!n.read && (
+                          <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                        )}
+                      </div>
+                      {n.body && (
+                        <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
+                          {n.body}
+                        </p>
                       )}
+                      <p className="text-[10px] text-muted-foreground/60 mt-1">
+                        {formatTime(n.created_at)}
+                      </p>
                     </div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
-                      {n.description}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground/60 mt-1">{n.time}</p>
-                  </div>
-                </motion.button>
-              );
-            })}
-          </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </MobileShell>

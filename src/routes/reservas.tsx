@@ -1039,14 +1039,16 @@ function PastReservationCard({ r, i }: { r: any; i: number }) {
                 {r.status === "completed" ? (
                   <div className="flex flex-1 items-center gap-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-400 font-medium">
                     <Star size={11} className="fill-emerald-400 shrink-0" />
-                    +150 pontos creditados
+                    +{r.points_earned ?? 150} pontos creditados
                   </div>
                 ) : (
                   <div className="flex-1" />
                 )}
                 <div className="flex flex-col items-end">
                   <span className="text-[10px] text-muted-foreground">Valor gasto</span>
-                  <span className="text-sm font-semibold text-muted-foreground">—</span>
+                  <span className="text-sm font-semibold text-muted-foreground">
+                    {r.total_amount != null ? `R$ ${Number(r.total_amount).toFixed(0)}` : "—"}
+                  </span>
                 </div>
               </div>
             </div>

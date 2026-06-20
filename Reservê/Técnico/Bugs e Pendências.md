@@ -12,9 +12,6 @@
 
 | Item | Arquivo | Detalhe |
 |------|---------|---------|
-| Notificações 100% fake | `NotificationsDrawer.tsx`, `perfil.notificacoes.tsx` | Arrays estáticos com restaurantes fictícios; estado "lido" não persiste |
-| "+150 pontos" no histórico | `reservas.tsx` | Número fixo; deveria vir do banco |
-| "Valor gasto: —" sempre vazio | `reservas.tsx` | Precisa de tabela `reservation_items` |
 
 ---
 
@@ -109,3 +106,6 @@ Detectar via `navigator.mediaDevices.enumerateDevices()` se há câmera, e mostr
 | Cidades hardcoded no FAQ + instrução de app nativo | v2.36 | Resposta de cidades genérica; notificações corrigidas para web/PWA |
 | Admin UUID truncado + sem nome do cliente | v2.37 | Join com `restaurants(name)` e `profiles(full_name)` nos dois painéis admin |
 | `keepLoggedIn` sem efeito real | v2.38 | Root verifica flag no boot: se `false` e sem `sessionStorage`, faz signOut |
+| Notificações 100% fake | v2.39 | Tabela `notifications` criada; drawer e tela conectados ao banco; estado "lido" persiste |
+| +150 pontos fixo no histórico | v2.39 | Usa `reservations.points_earned` (default 150); coluna adicionada ao banco |
+| "Valor gasto: —" sempre vazio | v2.39 | Usa `reservations.total_amount`; exibe valor quando preenchido pelo owner |
