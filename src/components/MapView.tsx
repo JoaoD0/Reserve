@@ -94,15 +94,20 @@ function formatTime(secs: number) {
 function RecenterBtn({
   userPos,
   tracking,
+  geoLoading,
   onToggle,
+  onRequestGeo,
 }: {
   userPos: [number, number] | null;
   tracking: boolean;
+  geoLoading: boolean;
   onToggle: () => void;
+  onRequestGeo: () => void;
 }) {
   const map = useMap();
+
   const fly = useCallback(() => {
-    if (userPos) map.flyTo(userPos, 16, { duration: 1 });
+    if (userPos) map.flyTo(userPos, 17, { duration: 1.2 });
   }, [map, userPos]);
 
   useMapEvents({
@@ -110,19 +115,31 @@ function RecenterBtn({
   });
 
   useEffect(() => {
-    if (tracking && userPos) map.flyTo(userPos, 16, { duration: 1 });
+    if (tracking && userPos) map.flyTo(userPos, 17, { duration: 1.2 });
   }, [tracking, userPos, map]);
+
+  const handleClick = () => {
+    if (!userPos) {
+      onRequestGeo();
+    } else {
+      onToggle();
+      fly();
+    }
+  };
 
   return (
     <button
-      onClick={() => { onToggle(); fly(); }}
-      className={`absolute bottom-[196px] right-3 z-[999] flex h-10 w-10 items-center justify-center rounded-full border shadow-lg transition-all ${
-        tracking
+      onClick={handleClick}
+      className={`absolute bottom-[196px] right-3 z-[999] flex h-11 w-11 items-center justify-center rounded-full border shadow-xl transition-all active:scale-90 ${
+        tracking && userPos
           ? "border-primary bg-primary text-primary-foreground"
-          : "border-border/60 bg-card/90 text-muted-foreground backdrop-blur"
+          : "border-border/40 bg-card/95 text-muted-foreground backdrop-blur-md"
       }`}
     >
-      <Locate size={16} />
+      {geoLoading
+        ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+        : <Locate size={16} />
+      }
     </button>
   );
 }
@@ -151,23 +168,35 @@ export function MapView({ lat, lng, name, address, imageUrl, onClose }: Props) {
   const [tracking, setTracking] = useState(false);
   const [route, setRoute] = useState<RouteInfo | null>(null);
   const [geoError, setGeoError] = useState(false);
+  const [geoLoading, setGeoLoading] = useState(false);
   const watchId = useRef<number | null>(null);
 
-  /* Geolocalização */
-  useEffect(() => {
+  const startWatch = useCallback(() => {
     if (!navigator.geolocation) { setGeoError(true); return; }
+    setGeoLoading(true);
+    if (watchId.current !== null) navigator.geolocation.clearWatch(watchId.current);
     watchId.current = navigator.geolocation.watchPosition(
       (pos) => {
         setUserPos([pos.coords.latitude, pos.coords.longitude]);
         setGeoError(false);
+        setGeoLoading(false);
+        setTracking(true);
       },
-      () => setGeoError(true),
-      { enableHighAccuracy: true, maximumAge: 5000 }
+      () => {
+        setGeoError(true);
+        setGeoLoading(false);
+      },
+      { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 }
     );
+  }, []);
+
+  /* Inicia geolocalização ao montar */
+  useEffect(() => {
+    startWatch();
     return () => {
       if (watchId.current !== null) navigator.geolocation.clearWatch(watchId.current);
     };
-  }, []);
+  }, [startWatch]);
 
   /* Rota via OSRM */
   useEffect(() => {
@@ -258,7 +287,9 @@ export function MapView({ lat, lng, name, address, imageUrl, onClose }: Props) {
           <RecenterBtn
             userPos={userPos}
             tracking={tracking}
+            geoLoading={geoLoading}
             onToggle={() => setTracking((t) => !t)}
+            onRequestGeo={startWatch}
           />
         </MapContainer>
       </div>
@@ -303,8 +334,13 @@ export function MapView({ lat, lng, name, address, imageUrl, onClose }: Props) {
                   <span className="text-xs font-semibold">{formatTime(displayTime)}</span>
                 </div>
               )}
-              {geoError && (
-                <p className="self-center text-[11px] text-muted-foreground">Localização indisponível</p>
+              {geoError && !geoLoading && (
+                <button
+                  onClick={startWatch}
+                  className="self-center text-[11px] text-primary underline-offset-2 hover:underline"
+                >
+                  Permitir localização
+                </button>
               )}
             </motion.div>
           )}
