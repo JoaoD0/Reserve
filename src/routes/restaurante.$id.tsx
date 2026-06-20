@@ -242,7 +242,11 @@ function LocationSection({
               <iframe
                 src={`https://www.openstreetmap.org/export/embed.html?bbox=${lng! - 0.003},${lat! - 0.003},${lng! + 0.003},${lat! + 0.003}&layer=mapnik&marker=${lat},${lng}`}
                 title="Prévia do mapa"
-                className="pointer-events-none h-full w-full border-0 scale-[1.02]"
+                className="pointer-events-none w-full border-0 scale-[1.02]"
+                style={{
+                  height: "calc(100% + 40px)",
+                  filter: "invert(1) hue-rotate(200deg) saturate(0.7) brightness(0.85)",
+                }}
                 loading="lazy"
               />
               {/* Dark overlay + label */}
